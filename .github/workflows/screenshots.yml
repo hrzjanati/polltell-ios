@@ -45,7 +45,7 @@ jobs:
           shot() {   # shot <name> <args...>
             local name=$1; shift
             xcrun simctl terminate "$UDID" "$bid" 2>/dev/null || true
-            xcrun simctl launch "$UDID" "$bid" "$@" >/dev/null
+            xcrun simctl launch "$UDID" "$bid" -TetherDemoQuiet "$@" >/dev/null
             sleep 8
             xcrun simctl io "$UDID" screenshot "shots/$name.png"
           }

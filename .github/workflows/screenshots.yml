@@ -1,0 +1,67 @@
+# Renders the README screenshots in the iOS simulator with the app's demo data (Debug build, -TetherDemo…
+# arguments: made-up names and test numbers, nothing connects). Run it from the Actions tab; the images come back
+# as the "screenshots" artifact, to be copied into docs/images.
+name: Screenshots
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Newest Xcode (Liquid Glass needs the iOS 26 SDK)
+        run: |
+          ls -d /Applications/Xcode*.app
+          x=$(ls -d /Applications/Xcode_26*.app 2>/dev/null | sort -V | tail -1)
+          [ -n "$x" ] && sudo xcode-select -s "$x"
+          xcodebuild -version
+      - name: XcodeGen
+        run: brew install xcodegen && cd ios && xcodegen generate --quiet
+      - name: Simulator
+        run: |
+          type=$(xcrun simctl list devicetypes | grep -m1 -oE 'iPhone [0-9]+ Pro \(' | sed 's/ ($//')
+          udid=$(xcrun simctl create shots "${type:-iPhone 17 Pro}")
+          echo "UDID=$udid" >> "$GITHUB_ENV"
+          xcrun simctl boot "$udid"
+          xcrun simctl bootstatus "$udid" -b
+          xcrun simctl ui "$udid" appearance dark
+          xcrun simctl status_bar "$udid" override --time 9:41 --batteryState charged --batteryLevel 100 --cellularBars 4 --wifiBars 3
+      - name: Build (Debug, simulator)
+        working-directory: ios
+        run: >
+          xcodebuild -project Tether.xcodeproj -scheme Tether -configuration Debug -destination "id=$UDID"
+          -derivedDataPath build-sim -skipMacroValidation CODE_SIGNING_ALLOWED=NO build -quiet
+      - name: Screenshots
+        run: |
+          app=$(find ios/build-sim/Build/Products -name '*.app' -path '*iphonesimulator*' | head -1)
+          bid=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Info.plist")
+          xcrun simctl install "$UDID" "$app"
+          xcrun simctl privacy "$UDID" grant all "$bid" || true
+          mkdir -p shots
+          shot() {   # shot <name> <args...>
+            local name=$1; shift
+            xcrun simctl terminate "$UDID" "$bid" 2>/dev/null || true
+            xcrun simctl launch "$UDID" "$bid" "$@" >/dev/null
+            sleep 8
+            xcrun simctl io "$UDID" screenshot "shots/$name.png"
+          }
+          shot recents -TetherDemo -TetherDemoRecents
+          shot thread -TetherDemo -TetherDemoThread
+          shot one-time-code -TetherDemo -TetherDemoRich
+          shot contacts -TetherDemo -TetherDemoContacts
+          shot keypad -TetherDemo -TetherDemoKeypad 09121234567
+          shot in-call -TetherDemoCall
+          shot phone-tools -TetherDemo -TetherDemoPhoneTools
+          shot messages-persian -TetherDemo -TetherDemoMessages -AppleLanguages "(fa)" -AppleLocale fa_IR
+          xcrun simctl ui "$UDID" appearance light
+          shot light-recents -TetherDemo -TetherDemoRecents
+          shot light-keypad -TetherDemo -TetherDemoKeypad 09121234567
+          ls -la shots
+      - uses: actions/upload-artifact@v5
+        with:
+          name: screenshots
+          path: shots/

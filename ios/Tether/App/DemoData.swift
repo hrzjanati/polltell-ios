@@ -10,7 +10,7 @@ extension AppModel {
         let args = ProcessInfo.processInfo.arguments
         guard args.contains("-TetherDemo") || args.contains("-TetherDemoCall") else { return }
         let now = Int64(Date().timeIntervalSince1970 * 1000)
-        let people = [("Sara Ahmadi", "+15550101"), ("Daniel Brooks", "+15550102"), ("Nima", "+15550103"), ("Bank", "7000")]
+        let people = [("Hossein Rezazadeh", "+15550101"), ("Daniel Brooks", "+15550102"), ("Nima", "+15550103"), ("Bank", "7000")]
         var sms: [Sms] = []
         var id: Int64 = 1
         let chat: [(Bool, String, Int)] = [   // (incoming, text, minutes ago)
@@ -88,7 +88,7 @@ extension AppModel {
         if args.contains("-TetherDemoNotify") {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                 Notifications.shared.showSms(Sms(id: 9001, thread: 1, addr: "+15550101", body: "Running five minutes late, order for me?",
-                                                 date: now, box: 1, read: false, sub: 3), from: "Sara Ahmadi")
+                                                 date: now, box: 1, read: false, sub: 3), from: "Hossein Rezazadeh")
                 Notifications.shared.showSms(Sms(id: 9002, thread: 4, addr: "7000", body: "Your verification code is 482913",
                                                  date: now, box: 1, read: false, sub: 3), from: "Bank")
             }
@@ -101,7 +101,7 @@ extension AppModel {
         }
         if args.contains("-TetherDemoCall") {
             let dialing = args.contains("-TetherDemoDialing")
-            callScreen = CallScreen(uuid: UUID(), number: "+15550101", name: "Sara Ahmadi", state: dialing ? "dialing" : "active",
+            callScreen = CallScreen(uuid: UUID(), number: "+15550101", name: "Hossein Rezazadeh", state: dialing ? "dialing" : "active",
                                     incoming: !dialing, connectedAt: dialing ? nil : Date().addingTimeInterval(-42), sub: 3)
             showCallScreen = !args.contains("-TetherDemoBanner")
             if args.contains("-TetherDemoRoutes") {   // the audio menu with a headset and a car (no Bluetooth in the simulator)

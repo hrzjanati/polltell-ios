@@ -46,15 +46,18 @@ jobs:
             local name=$1; shift
             xcrun simctl terminate "$UDID" "$bid" 2>/dev/null || true
             xcrun simctl launch "$UDID" "$bid" -TetherDemoQuiet "$@" >/dev/null
-            sleep 8
+            sleep 10
             xcrun simctl io "$UDID" screenshot "shots/$name.png"
           }
+          shot warmup -TetherDemo
           shot recents -TetherDemo -TetherDemoRecents
           shot thread -TetherDemo -TetherDemoThread
           shot one-time-code -TetherDemo -TetherDemoRich
           shot contacts -TetherDemo -TetherDemoContacts
           shot keypad -TetherDemo -TetherDemoKeypad 09121234567
           shot in-call -TetherDemoCall
+          shot in-call-2 -TetherDemo -TetherDemoCall
+          shot in-call-keypad -TetherDemoCall -TetherDemoKeypad
           shot phone-tools -TetherDemo -TetherDemoPhoneTools
           shot messages-persian -TetherDemo -TetherDemoMessages -AppleLanguages "(fa)" -AppleLocale fa_IR
           xcrun simctl ui "$UDID" appearance light

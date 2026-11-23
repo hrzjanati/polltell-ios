@@ -63,7 +63,7 @@ extension AppModel {
                    lists: BlockLists(blocked: ["7000", "+15550199"], muted: [3], system: true))
         // -TetherDemoMessages opens the Messages tab, -TetherDemoThread the first conversation,
         // -TetherDemoNotify posts a sample SMS notification.
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {   // after the root view has picked its first tab
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {   // after the root view has picked its first tab (slow first launch)
             if args.contains("-TetherDemoRich") { Router.shared.open(thread: 5) }
             else if args.contains("-TetherDemoThread") { Router.shared.open(thread: 1) }
             else if args.contains("-TetherDemoMessages") { Router.shared.tab = .messages }

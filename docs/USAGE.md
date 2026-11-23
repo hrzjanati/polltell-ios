@@ -6,7 +6,7 @@ what you do on the Android phone shows up on the iPhone, and the other way round
 ## Calls
 
 - **Incoming calls** ring on the iPhone with the system call screen, also on the lock screen. With two SIMs, the
-  SIM's name follows the caller's name ("Sara · Work").
+  SIM's name follows the caller's name ("Hossein · Work").
 - **Answer, decline, hang up, mute, hold, keypad, speaker** work as in the Phone app. Holding the phone to your ear
   turns the screen off.
 - **Headsets and cars**: with a Bluetooth headset, a car kit or a wired headset connected, the Speaker button becomes

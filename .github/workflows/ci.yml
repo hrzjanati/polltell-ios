@@ -1,0 +1,49 @@
+# Runs the automatic checks on every push and pull request: the same ones as tools/test-all.sh for this repository (except the privacy
+# scan's local-config values, which CI does not have). On-device checks are manual: tools/device-test.sh.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  apple:
+    name: Swift package and iPhone app
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - name: Swift package TetherCore
+        working-directory: ios/TetherCore
+        run: swift test
+      - name: XcodeGen
+        run: brew install xcodegen && cd ios && xcodegen generate --quiet
+      - name: iPhone app build (unsigned)
+        working-directory: ios
+        run: >
+          xcodebuild -project Tether.xcodeproj -scheme Tether -destination 'generic/platform=iOS'
+          -derivedDataPath build-gen -skipMacroValidation CODE_SIGNING_ALLOWED=NO build -quiet
+      - name: iPhone app unit tests
+        working-directory: ios
+        run: |
+          if ! grep -q TetherTests project.yml; then echo "no app test target"; exit 0; fi
+          type=$(xcrun simctl list devicetypes | grep -m1 -oE 'iPhone [0-9]+ \(' | sed 's/ ($//')
+          udid=$(xcrun simctl create ci-tests "$type")
+          xcodebuild test -project Tether.xcodeproj -scheme Tether -destination "id=$udid" \
+            -derivedDataPath build-test -skipMacroValidation -quiet
+
+  hygiene:
+    name: Whitespace, scripts, privacy patterns
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - run: git diff --check $(git hash-object -t tree /dev/null) HEAD -- . ':!ios/TetherCore/Sources/COpus'
+      - run: sh -n tools/lib.sh
+      - run: sudo apt-get install -y zsh >/dev/null && zsh -n tools/reinstall-ios.sh && zsh -n tools/test-all.sh
+      - run: zsh tools/check-private.sh --all

@@ -1,0 +1,26 @@
+{
+  "t": "selftest.result",
+  "dir": "phone-to-client",
+  "variants": {
+    "full": {
+      "methods": [
+        {
+          "name": "intercept",
+          "ok": true,
+          "note": "ok",
+          "delayMs": 40
+        }
+      ],
+      "chosen": "intercept"
+    },
+    "old": {
+      "methods": [
+        {
+          "name": "helper",
+          "ok": false,
+          "note": "not running"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "t": "error",
+  "dir": "both",
+  "variants": {
+    "full": {
+      "msg": "unknown type"
+    }
+  }
+}

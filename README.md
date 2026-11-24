@@ -62,7 +62,7 @@ tested on the build machine only so far (against a simulated Android phone), not
 | --- | --- |
 | iPhone or iPad | iOS 16 or later. No SIM card needed. |
 | Mac | Xcode 16 or later with an Apple account (free is enough), [XcodeGen](https://github.com/yonaskolb/XcodeGen). |
-| Android phone | Running PolTell from [polltell-android](https://github.com/hrzjanati/polltell-android). |
+| Android phone | Running PolTell from [polltell-android](https://github.com/hrzjanati/polltell-android); for call audio Android 13+ — see [which phones work](https://github.com/hrzjanati/polltell-android/blob/main/docs/DEVICES.md). |
 
 ## Build and install
 

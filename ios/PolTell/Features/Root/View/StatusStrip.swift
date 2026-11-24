@@ -141,34 +141,31 @@ struct BluetoothGlyph: Shape {
 #endif
 
 
-/// iPhone-style battery: the percentage is knocked out of the filled level, inside the body.
+/// iPhone-style battery: a dark fill up to the charge level, a light track for the rest, the percentage inside.
 struct BatteryBadge: View {
     let level: Int
     let charging: Bool
     let tint: Color
 
+    private let width: CGFloat = 34
+    private let height: CGFloat = 15
+
     var body: some View {
         let fraction = CGFloat(min(max(level, 0), 100)) / 100
         HStack(spacing: 1.5) {
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(Color.secondary.opacity(0.35))
-                RoundedRectangle(cornerRadius: 7, style: .continuous)
-                    .fill(tint)
-                    .frame(width: max(14, 34 * fraction))
-                    .overlay(alignment: .trailing) { EmptyView() }
-            }
-            .overlay {
+                RoundedRectangle(cornerRadius: 4.5, style: .continuous).fill(Color.primary.opacity(0.22))
+                RoundedRectangle(cornerRadius: 4.5, style: .continuous).fill(tint)
+                    .frame(width: max(8, width * fraction))
                 HStack(spacing: 0) {
                     if charging { Image(systemName: "bolt.fill").font(.system(size: 9, weight: .bold)) }
-                    Text("\(level)").font(.system(size: 13, weight: .bold).monospacedDigit())
+                    Text("\(level)").font(.system(size: 12, weight: .bold).monospacedDigit())
                 }
-                .foregroundStyle(.black)
-                .blendMode(.destinationOut)
+                .foregroundStyle(Color(uiColor: .systemBackground))
+                .frame(width: width)
             }
-            .compositingGroup()
-            .frame(width: 34, height: 15)
-            Capsule().fill(Color.secondary.opacity(0.5)).frame(width: 1.5, height: 5)
+            .frame(width: width, height: height)
+            Capsule().fill(Color.primary.opacity(0.4)).frame(width: 1.5, height: 5)
         }
     }
 }

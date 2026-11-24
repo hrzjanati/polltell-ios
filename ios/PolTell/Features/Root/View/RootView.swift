@@ -10,6 +10,8 @@ struct RootView: View {
     @ViewBuilder private var bodyContent: some View {
         @Perception.Bindable var vm = vm
         VStack(spacing: 0) {
+            // The capsule has its own row above the tabs: a navigation bar's buttons (add, compose) can then never sit under it.
+            StatusStrip()
             ReturnToCallBanner()
             RemoteCallBanner()
             TabView(selection: $vm.tab) {
@@ -30,14 +32,6 @@ struct RootView: View {
                 LinkView()
                     .tabItem { Label("Link", systemImage: "antenna.radiowaves.left.and.right") }
                     .tag(Router.Tab.link)
-            }
-            .toolbar(.hidden, for: .tabBar)
-            // The capsule floats over the page: no bar or band behind it, content scrolls under the glass.
-            .safeAreaInset(edge: .top, spacing: 0) { StatusStrip() }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
-                if vm.showsTabBar {
-                    GlassTabBar(selection: $vm.tab, missed: vm.missedCount, unread: vm.unreadTotal)
-                }
             }
         }
         .overlay(alignment: .bottom) {

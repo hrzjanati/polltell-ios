@@ -100,7 +100,7 @@ struct InCallView: View {
         return GlassGroup { Grid(horizontalSpacing: 26, verticalSpacing: 26) {
             GridRow {
                 if call.routes.contains(where: { !$0.kind.isBuiltIn }) {
-                    AudioRouteMenu(call: call) { vm.selectRoute($0) }
+                    AudioRouteMenu(call: call) { (routeID: String) in vm.selectRoute(routeID) }
                 } else {
                     RoundControl(icon: call.speaker ? "speaker.wave.3.fill" : "speaker.wave.2.fill", label: "Speaker", on: call.speaker) {
                         vm.toggleSpeaker(call)

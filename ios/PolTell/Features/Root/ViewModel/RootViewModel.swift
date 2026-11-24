@@ -23,7 +23,6 @@ final class RootViewModel {
     var missedCount: Int { model.missedCount }
     var unreadTotal: Int { model.unreadTotal }
     /// Like Messages: no tab bar inside a conversation (it would sit under the composer and the keyboard).
-    var showsTabBar: Bool { model.openThread == nil }
 
     func opened() { if !model.isPaired { router.tab = .link } }
 

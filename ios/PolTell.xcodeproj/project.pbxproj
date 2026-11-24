@@ -72,7 +72,6 @@
 		9E72F908FF4B09E2A3865686 /* ContactEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4CAF818EA55DAE1A118D1DD /* ContactEditorViewModel.swift */; };
 		9F6502BC6196BDE65D33E39A /* Bubble.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB597048FF42F6CFB2E33B56 /* Bubble.swift */; };
 		A0E461BEF20FDA38ACB475F3 /* EditContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57641825F682EE964E864BBE /* EditContactView.swift */; };
-		A18D24613CE3AD2EE3F0DA05 /* GlassTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = C341B4A8BDE369F39C6AB7B8 /* GlassTabBar.swift */; };
 		A20D2B773AE015B83979F84D /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = F82F7675DD814F34390E0137 /* Localizable.strings */; };
 		A3FC5B98C4978D1EFA7D8186 /* GlassGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969F89A5F633730141FF51C6 /* GlassGroup.swift */; };
 		ABE4BD2E6919168E4CB76C49 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08C586CA699E5B0339A41A1F /* EmptyStateView.swift */; };
@@ -185,7 +184,6 @@
 		B3C4EABA0234892575D807E1 /* PhoneToolsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhoneToolsViewModel.swift; sourceTree = "<group>"; };
 		B66057236A7C6DFA15068A11 /* ContactLabelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactLabelTests.swift; sourceTree = "<group>"; };
 		BB9522ADBC7B1A3D63044431 /* CallKind.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallKind.swift; sourceTree = "<group>"; };
-		C341B4A8BDE369F39C6AB7B8 /* GlassTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlassTabBar.swift; sourceTree = "<group>"; };
 		C8CDFEA5557CEE3F4558AD39 /* AppModelReceivedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModelReceivedTests.swift; sourceTree = "<group>"; };
 		CBBAD8A1F4C1E3928F37BD74 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
 		CFE768CE37CE88875C5A13F2 /* LinkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkViewModel.swift; sourceTree = "<group>"; };
@@ -513,7 +511,6 @@
 		A8BA2A18FB1107BFB9A0CE70 /* View */ = {
 			isa = PBXGroup;
 			children = (
-				C341B4A8BDE369F39C6AB7B8 /* GlassTabBar.swift */,
 				3795CB5B5D0035E33C2A4E7C /* RemoteCallBanner.swift */,
 				F395A78A12463793B38020A2 /* RootView.swift */,
 				0A44F9EFB40F4C0A11AF251B /* StatusStrip.swift */,
@@ -837,7 +834,6 @@
 				E2C5F3D154D63B46B45346E0 /* FavouritesStrip.swift in Sources */,
 				28D64AF385FE00153510F307 /* FavouritesViewModel.swift in Sources */,
 				A3FC5B98C4978D1EFA7D8186 /* GlassGroup.swift in Sources */,
-				A18D24613CE3AD2EE3F0DA05 /* GlassTabBar.swift in Sources */,
 				07429AF941DB91594A67BEFD /* IdentityStores.swift in Sources */,
 				E400996D4AE55AB0DFBD1B06 /* InCallControls.swift in Sources */,
 				2F58CA7AAE6B35E0056E5DAD /* InCallView.swift in Sources */,

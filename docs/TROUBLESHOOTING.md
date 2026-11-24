@@ -7,22 +7,22 @@ Start with the logs: on the iPhone, **Link › Link log**; on the Android phone,
 
 | Symptom | What to do |
 | --- | --- |
-| Link tab says *Searching* for a long time | Bluetooth on both phones; the Android phone's Tether notification should say *Advertising, waiting for iPhone*. If it says *Bluetooth off* or nothing, open Tether on the Android phone once |
+| Link tab says *Searching* for a long time | Bluetooth on both phones; the Android phone's PolTell notification should say *Advertising, waiting for iPhone*. If it says *Bluetooth off* or nothing, open PolTell on the Android phone once |
 | "The Android phone does not recognise this iPhone" | The pairing was removed on the Android phone: pair again (SETUP.md step 2) |
-| "Pairing code expired" | The QR code is valid for 5 minutes and once only, and is lost if Tether restarts: tap Pair iPhone again for a new one |
-| Links, then drops every few seconds | Check the link logs for the reason. Battery savers: give Tether unrestricted battery use on Android |
-| Nothing after an update of the Android app | Open Tether on the Android phone once (some phones do not restart its service after an update) |
+| "Pairing code expired" | The QR code is valid for 5 minutes and once only, and is lost if PolTell restarts: tap Pair iPhone again for a new one |
+| Links, then drops every few seconds | Check the link logs for the reason. Battery savers: give PolTell unrestricted battery use on Android |
+| Nothing after an update of the Android app | Open PolTell on the Android phone once (some phones do not restart its service after an update) |
 
 ### Bluetooth tethering
 
-Bluetooth tethering pairs the two phones over classic Bluetooth. iOS then runs Tether's GATT connection over that
-classic link whenever it is the only one, where Tether's fast L2CAP channel cannot open, and moves it to Bluetooth LE
+Bluetooth tethering pairs the two phones over classic Bluetooth. iOS then runs PolTell's GATT connection over that
+classic link whenever it is the only one, where PolTell's fast L2CAP channel cannot open, and moves it to Bluetooth LE
 as soon as an LE link appears, which ends the session running at that moment. To keep one stable session, the Android
 app holds an LE link to the iPhone while a session is up (link log: *LE link held*), so iOS keeps it on LE and
 L2CAP and nothing moves underneath it. If a session does start over the classic link, the first LE link ends it
 once and the iPhone sets up again over LE within seconds.
 
-Tether never uses Bluetooth's own encryption or pairing, so the pairing made for tethering cannot break it. Older
+PolTell never uses Bluetooth's own encryption or pairing, so the pairing made for tethering cannot break it. Older
 versions failed in this setup with *"PSM read failed: the encryption key size is insufficient"*, or connected and
 dropped over and over: update both apps.
 
@@ -37,7 +37,7 @@ touch Bluetooth at all and is faster.
 - **Swiped away in the app switcher** (force quit): iOS does not start the app again for Bluetooth until you open
   it yourself, so calls and texts do not reach the iPhone meanwhile (calls still ring on the Android phone, and
   show on the iPhone as missed once it links). No app can change this. When iOS lets it, the app posts a
-  "Calls paused" notification as it closes. Leave Tether in the background instead of swiping it away; it uses
+  "Calls paused" notification as it closes. Leave PolTell in the background instead of swiping it away; it uses
   almost no battery while it waits.
 - **Stopped by iOS** in the background (low memory): iOS starts it again when the Android phone brings a Bluetooth
   link up, which it tries every 5 s for a minute after the link was lost, then every 30 s. Usually seconds, but
@@ -50,15 +50,15 @@ On Android 10 the phone cannot bridge call audio at all, and on Android 11 and 1
 system allows capturing the call: see [features by Android version](devices/android-versions.md). The Call audio
 card in the Android app says which case you are in.
 
-1. In Tether on the Android phone, the **Audio helper** must say *Running*. If not, see the next section.
+1. In PolTell on the Android phone, the **Audio helper** must say *Running*. If not, see the next section.
 2. During a call, tap **Run call-audio self-test**: it lists each capture and inject path and whether it works.
 3. The Android version must be 13 or later, and the build must let the shell user intercept call audio. Not every
    manufacturer allows it. If no path works, calls still work from the iPhone but their audio stays on the
    Android phone. Please report your model and the self-test result.
-4. You hear the other side on the Android phone too: Tether mutes the phone's own earpiece and microphone during a
+4. You hear the other side on the Android phone too: PolTell mutes the phone's own earpiece and microphone during a
    bridged call with each vendor's controls: Samsung (tested), Qualcomm and MediaTek (from their audio sources,
    untested). Other phones (Google Pixel and unknown chips) get the earpiece muted only. The Link tab shows it
-   under **Call audio › Android phone silent**. On MediaTek, Tether never mutes the microphone through Android,
+   under **Call audio › Android phone silent**. On MediaTek, PolTell never mutes the microphone through Android,
    because there that also mutes what the iPhone sends.
 
 ### Headset or car
@@ -73,7 +73,7 @@ card in the Android app says which case you are in.
 - Wireless debugging needs a Wi-Fi connection when the helper starts. Connect the Android phone to Wi-Fi, then tap
   **Start**.
 - With TCP debugging (SETUP.md): the TCP mode is lost on every phone restart; connect USB and run `adb tcpip 5555`
-  again, accept the key prompt, then tap **Start**. If you used another port, Tether only tries the one it was
+  again, accept the key prompt, then tap **Start**. If you used another port, PolTell only tries the one it was
   enabled with (default 5555).
 - If the phone forgot the Wireless debugging pairing (some updates do), pair again (SETUP.md, Wireless debugging).
 - From a computer, `tools/start-helper.sh` starts the helper over USB `adb` as a fallback.

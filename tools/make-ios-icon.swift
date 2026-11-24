@@ -1,7 +1,7 @@
 // The PolTell app icon now comes from docs/logo/polltell-icon.svg (an arch bridge); render it with
-//   rsvg-convert -w 1024 -h 1024 docs/logo/polltell-icon.svg -o ios/Tether/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+//   rsvg-convert -w 1024 -h 1024 docs/logo/polltell-icon.svg -o ios/PolTell/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 // This script renders the original Tether handset icon and is kept for reference only.
-//   swiftc tools/make-ios-icon.swift -o /tmp/icon && /tmp/icon ios/Tether/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png
+//   swiftc tools/make-ios-icon.swift -o /tmp/icon && /tmp/icon ios/PolTell/Resources/Assets.xcassets/AppIcon.appiconset/icon-1024.png
 import AppKit
 
 let px = 1024

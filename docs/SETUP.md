@@ -4,47 +4,47 @@ Install both apps first ([BUILD.md](BUILD.md)). Keep both phones near each other
 
 ## 1. Android phone
 
-Open **Tether**. Its main screen has three cards; work through **Setup** from top to bottom.
+Open **PolTell**. Its main screen has three cards; work through **Setup** from top to bottom.
 
 | Step | What it does | Why |
 | --- | --- | --- |
 | Permissions | Grants SMS, contacts, call log, phone, notifications and nearby devices (Bluetooth) | To read and send texts, show calls and contacts, and advertise over Bluetooth |
-| Default phone app | Makes Tether the phone's dialer | Android only lets the default phone app see and control calls. Your usual dialer still works for calls you place on the phone itself; Tether shows its own call screen there |
-| Unrestricted battery use | Exempts Tether from battery optimisation | So Android does not stop the link in the background |
-| Wireless debugging | Pairs Tether with the phone's own Wireless debugging (see below) | Needed only for call audio and the network switches |
+| Default phone app | Makes PolTell the phone's dialer | Android only lets the default phone app see and control calls. Your usual dialer still works for calls you place on the phone itself; PolTell shows its own call screen there |
+| Unrestricted battery use | Exempts PolTell from battery optimisation | So Android does not stop the link in the background |
+| Wireless debugging | Pairs PolTell with the phone's own Wireless debugging (see below) | Needed only for call audio and the network switches |
 
-Your default **SMS** app can stay as it is (for example Google Messages). Tether reads and sends texts through the
+Your default **SMS** app can stay as it is (for example Google Messages). PolTell reads and sends texts through the
 system; marking texts read and deleting them works without being the SMS app.
 
 ### Wireless debugging (call audio and switches)
 
 Bridging call audio and switching mobile data, hotspot, tethering or airplane mode needs permissions only Android's
-shell user has. Tether gets them the way a computer would: it pairs with the phone's own Wireless debugging and
+shell user has. PolTell gets them the way a computer would: it pairs with the phone's own Wireless debugging and
 starts a small helper as the shell user. Nothing leaves the phone.
 
 1. Enable Developer options (Settings › About phone › tap Build number seven times).
 2. Connect the phone to any Wi-Fi network (Wireless debugging only runs on Wi-Fi; it is needed when the helper
    starts, not afterwards).
-3. In Tether, tap **Pair** next to Wireless debugging. Developer options opens and a Tether notification appears.
+3. In PolTell, tap **Pair** next to Wireless debugging. Developer options opens and a PolTell notification appears.
 4. In Developer options › Wireless debugging, turn it on, tap **Pair device with pairing code**, and type the
-   six-digit code into the Tether notification.
+   six-digit code into the PolTell notification.
 5. The **Audio helper** line in the Call audio card turns to "Running".
 
 ### TCP debugging (Android 10, or no Wi-Fi)
 
 Android 10 has no Wireless debugging, and Wireless debugging also needs a Wi-Fi network the phone trusts. For those
-cases Tether can use adb's older TCP mode on the phone itself. It is off until you enable it:
+cases PolTell can use adb's older TCP mode on the phone itself. It is off until you enable it:
 
 1. Connect the phone to a computer with USB once (USB debugging on) and run `adb tcpip 5555`.
 2. Accept the key prompt on the phone (tick Always allow).
-3. In Tether, tap **Enable** next to TCP debugging. Tether connects to `127.0.0.1:5555`, grants itself what it needs
+3. In PolTell, tap **Enable** next to TCP debugging. PolTell connects to `127.0.0.1:5555`, grants itself what it needs
    and starts the helper. Wireless debugging is tried first where the phone has it; the TCP mode is the fallback.
 
 The TCP mode is lost when the phone restarts: run `adb tcpip 5555` again after every restart (the helper does not
-start until you do). `adb usb` switches it off; **Turn off** in Tether stops Tether using it. Read the security note
+start until you do). `adb usb` switches it off; **Turn off** in PolTell stops PolTell using it. Read the security note
 in [SECURITY.md](../SECURITY.md) first.
 
-After a phone restart Tether starts the helper again by itself when Wi-Fi is on. On Android 10 the helper cannot bridge call
+After a phone restart PolTell starts the helper again by itself when Wi-Fi is on. On Android 10 the helper cannot bridge call
 audio (see [features by Android version](devices/android-versions.md)); on Android 11 and 12 it uses a best-effort path. On some Android builds the shell user is not allowed to
 intercept call audio; then calls are still controlled from the iPhone and their audio stays on the Android phone.
 Use **Run call-audio self-test** during a call to see which audio paths work on your phone.

@@ -73,7 +73,7 @@ cd ios && xcodegen generate && cd ..
 tools/reinstall-ios.sh                                            # builds, signs and installs on your iPhone
 ```
 
-Or open `ios/Tether.xcodeproj` in Xcode, choose your team under Signing & Capabilities and press Run. With a free
+Or open `ios/PolTell.xcodeproj` in Xcode, choose your team under Signing & Capabilities and press Run. With a free
 Apple account the app must be reinstalled every 7 days. Then on the Android phone tap **Pair iPhone** and scan the code
 from the iPhone's **Link** tab ([docs/SETUP.md](docs/SETUP.md)).
 More: [BUILD](docs/BUILD.md) · [USAGE](docs/USAGE.md) · [TROUBLESHOOTING](docs/TROUBLESHOOTING.md) ·
@@ -121,6 +121,6 @@ messages. PolTell does not record calls.
 ## Credits and licence
 
 PolTell is the [Tether](https://github.com/amirwmr/tether) project by the Tether authors, under a new name and icon
-and split into an Android and an iPhone repository. The code is otherwise the same; the documentation in `docs/`
-still uses the original name "Tether" (the Android app id `app.tether.android`, the iOS target `Tether` and the
-`TetherCore` package keep their names). MIT, see [LICENSE](LICENSE); third-party components in [NOTICE](NOTICE).
+and split into an Android and an iPhone repository. The iOS app, target and `PolTellCore` package are named PolTell;
+the Android app id `app.tether.android`, the `tether1:` pairing prefix, the `tether://` link scheme and the protocol's
+key labels keep the original name so both apps and existing pairings stay compatible. MIT, see [LICENSE](LICENSE); third-party components in [NOTICE](NOTICE).

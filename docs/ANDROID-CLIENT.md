@@ -1,19 +1,19 @@
 # The Android client
 
 `android/client` is an app for a **second Android phone** that does what the iPhone app does: it links to the
-Android phone that holds the SIM cards (the one running Tether, `android/app`) and shows its calls, texts, contacts
+Android phone that holds the SIM cards (the one running PolTell, `android/app`) and shows its calls, texts, contacts
 and call history. The SIM phone stays in a bag; you use the other phone.
 
 | | |
 | --- | --- |
-| Application id | `app.tether.client` (name "Tether Client"); installs next to `app.tether.android` without touching it |
+| Application id | `app.tether.client` (name "PolTell Client"); installs next to `app.tether.android` without touching it |
 | Android | 10 (API 29) or later: Bluetooth LE central with L2CAP channels (`createInsecureL2capChannel`); GATT pipe as fallback |
 | Client kind | `"android"` in `sync` (protocol §5, §5.1) |
 | Languages | English and Persian |
 
 ## What it does
 
-- **Pairing**: scans the QR code the SIM phone shows (Tether › Pair) with the camera (ZXing), or takes the code
+- **Pairing**: scans the QR code the SIM phone shows (PolTell › Pair) with the camera (ZXing), or takes the code
   pasted by hand (`tether1:…`). Same handshake, keys and token as the iPhone (protocol §3).
 - **Link**: scans for the service UUID and also tries the address it last reached the phone at, connects, reads the
   PSM, opens an L2CAP channel (6 s, then the GATT pipe), runs the session, and reconnects for ever with the iPhone's
@@ -31,7 +31,7 @@ and call history. The SIM phone stays in a bag; you use the other phone.
   elsewhere") with a **Move here** banner (`call.take`), and local calls end when the link goes.
 - **Call audio** both ways: `AudioRecord` (VOICE_COMMUNICATION, with the platform's echo canceller, noise suppressor
   and gain control) → Opus (Concentus, the codec code shared with the SIM phone) → link; link → Opus → the playout
-  buffer ported from TetherCore (same numbers, same tests) → `AudioTrack` (voice communication). A local ringback
+  buffer ported from PolTellCore (same numbers, same tests) → `AudioTrack` (voice communication). A local ringback
   plays while dialing until the far end is audible. Call statistics go to the Link log at the end of each call.
   The playout matches the iPhone's tuning of 2026-11-23: arrivals stamped off the link, depth from the arrival
   spread around the far clock's drift (first 2 s left out), frames dropped for lateness filled by Opus concealment.
@@ -43,7 +43,7 @@ and call history. The SIM phone stays in a bag; you use the other phone.
   data SIM, hotspot, Bluetooth tethering, airplane mode, network mode per SIM, Share VPN), the audio self-test, the
   Link log, pairing and unpairing.
 - **tel: links**: `ACTION_DIAL`, `ACTION_VIEW` and `ACTION_CALL` for `tel:` are registered, so tapping a number in
-  another app offers "Call with Tether Client" (the keypad, or a call at once for `ACTION_CALL` while linked).
+  another app offers "Call with PolTell Client" (the keypad, or a call at once for `ACTION_CALL` while linked).
 - Numbers are shown with `PhoneNumberUtils.formatNumber` and this phone's country, left-to-right in Persian too.
 
 ## Not done (yet)
@@ -69,7 +69,7 @@ Same JDK, SDK, Maven mirror and optional signing key as the SIM phone's app (see
 ## First run
 
 1. Install and open it; allow Nearby devices (Bluetooth), the microphone and notifications.
-2. Link › Pair: on the SIM phone open Tether and tap **Pair**, then point the camera at the code.
+2. Link › Pair: on the SIM phone open PolTell and tap **Pair**, then point the camera at the code.
 3. Link › **Allow running in the background** (battery optimisation off), so the link survives Doze.
 4. Calls from Recents, Contacts or the Keypad go out through the SIM phone; incoming calls ring here.
 

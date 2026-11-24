@@ -1,4 +1,4 @@
-# Using Tether
+# Using PolTell
 
 Everything happens in the iPhone app; the Android phone can stay in a bag. Both phones keep working on their own:
 what you do on the Android phone shows up on the iPhone, and the other way round.
@@ -24,20 +24,20 @@ what you do on the Android phone shows up on the iPhone, and the other way round
 ## Calling numbers from other apps
 
 Numbers tapped elsewhere on the iPhone (Safari, Mail, Notes, a contact card, a `tel:` link) can be called through the
-Android phone. A link never dials by itself: Tether shows "Call …?" and calls when you tap **Call**; if the Android
+Android phone. A link never dials by itself: PolTell shows "Call …?" and calls when you tap **Call**; if the Android
 phone is not connected it says so and **Show in Keypad** (or Cancel) leaves the number in the Keypad. Service codes
 (`*140*1#`) and extensions (`;ext=12`, pauses `p` / `,`) are kept.
 
 | Route | What you do once | Account |
 | --- | --- | --- |
-| Default calling app (iOS 18.2 or later): every phone number you tap opens Tether | Settings › Apps › Default Apps › Calling › choose Tether (shown under its display name) | Paid developer program only (`com.apple.developer.calling-app`); with a free account the app is not offered there |
-| The Phone app's Recents: tap a Tether call there to call back through the Android phone | Link tab › Numbers in other apps › **Show calls in the Phone app** | Any |
-| Shortcuts / Siri: "Call with Tether" | Nothing (the App Shortcut is built in). Siri asks for the number. In a shortcut, pass a number or any text containing one, e.g. *Receive text from Share Sheet → Call a Number*, to call a number selected in any app via Share | Any |
+| Default calling app (iOS 18.2 or later): every phone number you tap opens PolTell | Settings › Apps › Default Apps › Calling › choose PolTell (shown under its display name) | Paid developer program only (`com.apple.developer.calling-app`); with a free account the app is not offered there |
+| The Phone app's Recents: tap a PolTell call there to call back through the Android phone | Link tab › Numbers in other apps › **Show calls in the Phone app** | Any |
+| Shortcuts / Siri: "Call with PolTell" | Nothing (the App Shortcut is built in). Siri asks for the number. In a shortcut, pass a number or any text containing one, e.g. *Receive text from Share Sheet → Call a Number*, to call a number selected in any app via Share | Any |
 | URL scheme: `tether://dial?number=%2B15550100` (also `tether:call?number=…`, `tether://dial/<number>`) | Use it from Shortcuts (Open URL) or a link; iOS asks "Open in …?" first | Any |
 
 Shortcuts, Siri and the Phone app's Recents dial at once when the Android phone is linked (they are your own taps
 in system UI), waiting a few seconds for the link after a cold start; links always ask. Without the paid account
-there is no way to put Tether in the button list of the Contacts app or to make plain `tel:` links open it.
+there is no way to put PolTell in the button list of the Contacts app or to make plain `tel:` links open it.
 
 ## Messages
 
@@ -61,13 +61,13 @@ there is no way to put Tether in the button list of the Contacts app or to make 
 
 ## Phone tools
 
-Link tab › **Phone tools** (shown when the Android phone's Tether supports it):
+Link tab › **Phone tools** (shown when the Android phone's PolTell supports it):
 
 - **Carrier codes**: type a code such as a balance check (`*123#`), pick the SIM and tap Send; the carrier's answer shows
   below (30 s limit). Only `*` / `#` codes are accepted. Carrier codes may cost money.
 - **Find phone**: rings the Android phone loudly (alarm volume at maximum, restored afterwards) for up to 30 seconds. It
   stops when you switch it off, tap Stop in its notification or unlock it.
-- **Ringer**: Ring, Vibrate or Silent. Silent needs Do Not Disturb access for Tether on the Android phone (Settings ›
+- **Ringer**: Ring, Vibrate or Silent. Silent needs Do Not Disturb access for PolTell on the Android phone (Settings ›
   Notifications › Do Not Disturb); without it the iPhone shows the reason.
 
 ## Internet sharing
@@ -76,12 +76,12 @@ Use the Android phone's mobile data on the iPhone:
 
 - **Wi-Fi hotspot** (Link tab): turn it on, then join it in the iPhone's Settings › Wi-Fi. Fastest.
 - **Bluetooth tethering**: turn it on, then on the iPhone pick the Android phone under Settings › Bluetooth (pair
-  it once when asked). Slower, but no Wi-Fi needed. While it is on, Tether's own link also uses the classic
+  it once when asked). Slower, but no Wi-Fi needed. While it is on, PolTell's own link also uses the classic
   Bluetooth connection, see [TROUBLESHOOTING.md](TROUBLESHOOTING.md#bluetooth-tethering).
 
 ## Share VPN
 
-Android does not send hotspot or tethered traffic through a VPN app. *Share VPN* runs a small proxy in Tether that
+Android does not send hotspot or tethered traffic through a VPN app. *Share VPN* runs a small proxy in PolTell that
 does: apps on the iPhone that use it go out through the Android phone's VPN.
 
 1. Turn the VPN on in its own app on the Android phone, and the hotspot on.
@@ -104,7 +104,7 @@ conversations you do not want notified. There are two build variants:
 
 ## Keep the app running
 
-Leave Tether in the background; do not swipe it away in the app switcher. iOS does not start a swiped-away app
+Leave PolTell in the background; do not swipe it away in the app switcher. iOS does not start a swiped-away app
 for Bluetooth, so calls and texts stop reaching the iPhone until you open it again (it links within a few seconds
 then). Calls still ring on the Android phone meanwhile. See [TROUBLESHOOTING.md](TROUBLESHOOTING.md#after-closing-the-app).
 

@@ -18,23 +18,23 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
-      - name: Swift package TetherCore
-        working-directory: ios/TetherCore
+      - name: Swift package PolTellCore
+        working-directory: ios/PolTellCore
         run: swift test
       - name: XcodeGen
         run: brew install xcodegen && cd ios && xcodegen generate --quiet
       - name: iPhone app build (unsigned)
         working-directory: ios
         run: >
-          xcodebuild -project Tether.xcodeproj -scheme Tether -destination 'generic/platform=iOS'
+          xcodebuild -project PolTell.xcodeproj -scheme PolTell -destination 'generic/platform=iOS'
           -derivedDataPath build-gen -skipMacroValidation CODE_SIGNING_ALLOWED=NO build -quiet
       - name: iPhone app unit tests
         working-directory: ios
         run: |
-          if ! grep -q TetherTests project.yml; then echo "no app test target"; exit 0; fi
+          if ! grep -q PolTellTests project.yml; then echo "no app test target"; exit 0; fi
           type=$(xcrun simctl list devicetypes | grep -m1 -oE 'iPhone [0-9]+ \(' | sed 's/ ($//')
           udid=$(xcrun simctl create ci-tests "$type")
-          xcodebuild test -project Tether.xcodeproj -scheme Tether -destination "id=$udid" \
+          xcodebuild test -project PolTell.xcodeproj -scheme PolTell -destination "id=$udid" \
             -derivedDataPath build-test -skipMacroValidation -quiet
 
   hygiene:
@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
-      - run: git diff --check $(git hash-object -t tree /dev/null) HEAD -- . ':!ios/TetherCore/Sources/COpus'
+      - run: git diff --check $(git hash-object -t tree /dev/null) HEAD -- . ':!ios/PolTellCore/Sources/COpus'
       - run: sh -n tools/lib.sh
       - run: sudo apt-get install -y zsh >/dev/null && zsh -n tools/reinstall-ios.sh && zsh -n tools/test-all.sh
       - run: zsh tools/check-private.sh --all

@@ -39,22 +39,22 @@ step "script syntax" sh -c 'sh -n tools/lib.sh && zsh -n tools/reinstall-ios.sh 
 step "privacy scan (tracked changes)" tools/check-private.sh
 
 if [[ $(uname) == Darwin ]] && command -v swift >/dev/null; then
-  step "Swift package TetherCore" sh -c 'cd ios/TetherCore && swift test'
+  step "Swift package PolTellCore" sh -c 'cd ios/PolTellCore && swift test'
 else
-  print "• Swift package TetherCore … skipped (needs macOS with Swift)"
+  print "• Swift package PolTellCore … skipped (needs macOS with Swift)"
 fi
 
 if (( ios )) && [[ $(uname) == Darwin ]] && command -v xcodebuild >/dev/null; then
   if command -v xcodegen >/dev/null; then
     step "iOS project (xcodegen)" sh -c 'cd ios && xcodegen generate --quiet'
-    step "iOS app build (device, unsigned)" sh -c "cd ios && xcodebuild -project Tether.xcodeproj -scheme Tether \
+    step "iOS app build (device, unsigned)" sh -c "cd ios && xcodebuild -project PolTell.xcodeproj -scheme PolTell \
       -destination 'generic/platform=iOS' -derivedDataPath build-gen -skipMacroValidation CODE_SIGNING_ALLOWED=NO build -quiet"
-    if grep -q 'TetherTests' ios/project.yml; then
+    if grep -q 'PolTellTests' ios/project.yml; then
       # A throw-away simulator, so the tests never touch a simulator you use.
       sim_type=$(xcrun simctl list devicetypes | grep -m1 -oE 'iPhone [0-9]+ \(' | sed 's/ ($//')
       udid=$(xcrun simctl create tether-test-all "${sim_type:-iPhone 17}" 2>/dev/null)
       if [[ -n $udid ]]; then
-        step "iOS app unit tests (TetherTests)" sh -c "cd ios && xcodebuild test -project Tether.xcodeproj -scheme Tether \
+        step "iOS app unit tests (PolTellTests)" sh -c "cd ios && xcodebuild test -project PolTell.xcodeproj -scheme PolTell \
           -destination 'id=$udid' -derivedDataPath build-test -skipMacroValidation -quiet"
         xcrun simctl delete "$udid" >/dev/null 2>&1
       else

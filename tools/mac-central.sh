@@ -1,26 +1,26 @@
 #!/bin/sh
-# Optional: real-radio test of the Tether link from this Mac (no iPhone needed). Builds the TetherCore
+# Optional: real-radio test of the PolTell link from this Mac (no iPhone needed). Builds the PolTellCore
 # test central as a small .app (macOS only grants Bluetooth to an app with its own usage string),
 # asks the Android phone for a fresh pairing code over adb, and runs a pair + full sync.
-# macOS will ask once to allow Bluetooth for "TetherCentral".
+# macOS will ask once to allow Bluetooth for "PolTellCentral".
 #   tools/mac-central.sh            # pair with a fresh code and sync for 60 s
 #   tools/mac-central.sh run 60     # reconnect with the stored test identity
 set -e
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-(cd "$ROOT/ios/TetherCore" && swift build -c release --product tether-central >/dev/null)
-APP=$ROOT/tools/out/TetherCentral.app
+(cd "$ROOT/ios/PolTellCore" && swift build -c release --product poltell-central >/dev/null)
+APP=$ROOT/tools/out/PolTellCentral.app
 rm -rf "$APP"; mkdir -p "$APP/Contents/MacOS"
-cp "$ROOT/ios/TetherCore/.build/release/tether-central" "$APP/Contents/MacOS/TetherCentral"
+cp "$ROOT/ios/PolTellCore/.build/release/poltell-central" "$APP/Contents/MacOS/PolTellCentral"
 cat > "$APP/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleIdentifier</key><string>app.tether.central-test</string>
-<key>CFBundleExecutable</key><string>TetherCentral</string>
-<key>CFBundleName</key><string>TetherCentral</string>
+<key>CFBundleExecutable</key><string>PolTellCentral</string>
+<key>CFBundleName</key><string>PolTellCentral</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSUIElement</key><true/>
-<key>NSBluetoothAlwaysUsageDescription</key><string>Tests the Tether BLE link against the Android phone.</string>
+<key>NSBluetoothAlwaysUsageDescription</key><string>Tests the PolTell BLE link against the Android phone.</string>
 </dict></plist>
 PLIST
 codesign -s - --force "$APP" >/dev/null 2>&1

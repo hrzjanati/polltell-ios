@@ -59,7 +59,7 @@ carry over to real calls; codec, link and Telecom figures do:
 | Opus encode / decode, 20 ms frame (Concentus, complexity 3) | ~3 ms (~0.9 ms once the CPU has ramped up) / ~0.5 ms |
 | Inject buffer cap 40 ms (default) / 20 ms | 0 underruns / 60-70 underruns and ~95 dropped uplink frames per 5 s call: keep 40 |
 | LE PHY on the owner's link | 2M |
-| Voice-call stream mute as shell (`HelperMain silence on/off` with `TETHER_SILENCE=other`) | works (index 0, restored) |
+| Voice-call stream mute as shell (`HelperMain silence on/off` with `POLTELL_SILENCE=other`) | works (index 0, restored) |
 | Inject track's sink on the test line, nothing reading it / read as the far end (the helper does since 2026-11-23) | 14.4 kHz for 16 kHz (10 % slow: the uplink backed up and frames were dropped) / 16.0 kHz |
 | Mixer period of the inject path: test line (remote submix) / real call (Telephony Tx, `dumpsys media.audio_flinger`) | 32 ms (512 frames at 16 kHz) / 20 ms (960 frames at 48 kHz, HAL 10 ms) |
 | Capture clock (interception record), test line | 16.0 kHz against the monotonic clock |

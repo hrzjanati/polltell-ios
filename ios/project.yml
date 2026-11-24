@@ -1,5 +1,5 @@
 # XcodeGen spec. Generate the project with:  cd ios && xcodegen generate
-name: Tether
+name: PolTell
 options:
   bundleIdPrefix: app.tether
   deploymentTarget:
@@ -11,69 +11,69 @@ settings:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0"
     CURRENT_PROJECT_VERSION: "1"
-    # Team, bundle id and display name come from Config/Tether.xcconfig + Config/Local.xcconfig (docs/BUILD.md).
+    # Team, bundle id and display name come from Config/PolTell.xcconfig + Config/Local.xcconfig (docs/BUILD.md).
     CODE_SIGN_STYLE: Automatic
 packages:
-  TetherCore:
-    path: TetherCore
+  PolTellCore:
+    path: PolTellCore
   Perception:
     url: https://github.com/pointfreeco/swift-perception
     from: 2.0.9
 targets:
-  Tether:
+  PolTell:
     type: application
     platform: iOS
     sources:
-      - path: Tether
+      - path: PolTell
     dependencies:
-      - package: TetherCore
-        product: TetherCore
+      - package: PolTellCore
+        product: PolTellCore
       - package: Perception
         product: Perception
     configFiles:
-      Debug: Config/Tether.xcconfig
-      Release: Config/Tether.xcconfig
+      Debug: Config/PolTell.xcconfig
+      Release: Config/PolTell.xcconfig
     settings:
       base:
         TARGETED_DEVICE_FAMILY: "1,2"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
-        INFOPLIST_FILE: Tether/Resources/Info.plist
+        INFOPLIST_FILE: PolTell/Resources/Info.plist
         GENERATE_INFOPLIST_FILE: NO
         SUPPORTS_MACCATALYST: NO
         # Paid-team entitlements: Communication Notifications (sender's picture in notifications) and Default Calling
         # App (com.apple.developer.calling-app, iOS 18.2+: tel: links open this app). tools/reinstall-ios.sh first builds with
-        # TETHER_ENTITLEMENTS=Tether/Resources/Tether.entitlements TETHER_COMM_NOTIFICATIONS=YES and falls back to
+        # POLTELL_ENTITLEMENTS=PolTell/Resources/PolTell.entitlements POLTELL_COMM_NOTIFICATIONS=YES and falls back to
         # these defaults (no entitlement) when the signing service refuses it.
-        TETHER_ENTITLEMENTS: ""
-        TETHER_COMM_NOTIFICATIONS: "NO"
-        CODE_SIGN_ENTITLEMENTS: $(TETHER_ENTITLEMENTS)
-  TetherTests:
+        POLTELL_ENTITLEMENTS: ""
+        POLTELL_COMM_NOTIFICATIONS: "NO"
+        CODE_SIGN_ENTITLEMENTS: $(POLTELL_ENTITLEMENTS)
+  PolTellTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - path: TetherTests
+      - path: PolTellTests
     dependencies:
-      - target: Tether
-      - package: TetherCore
-        product: TetherCore
+      - target: PolTell
+      - package: PolTellCore
+        product: PolTellCore
     settings:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: app.tether.tests
-        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Tether.app/Tether
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/PolTell.app/PolTell
         BUNDLE_LOADER: $(TEST_HOST)
         CODE_SIGNING_ALLOWED: NO
 schemes:
-  Tether:
+  PolTell:
     build:
       targets:
-        Tether: all
+        PolTell: all
     run:
       config: Debug
     test:
       config: Debug
       targets:
-        - TetherTests
-      # The protocol / crypto / framing tests live in the TetherCore package:
-      #   cd ios/TetherCore && ./test.sh   (or open Package.swift in Xcode and press ⌘U)
+        - PolTellTests
+      # The protocol / crypto / framing tests live in the PolTellCore package:
+      #   cd ios/PolTellCore && ./test.sh   (or open Package.swift in Xcode and press ⌘U)

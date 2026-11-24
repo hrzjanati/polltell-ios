@@ -20,11 +20,11 @@ ZXing core and the Kotlin standard library from this list):
 | Gradle wrapper | | Apache-2.0 | Build |
 
 The iPhone app uses Apple's frameworks, one vendored C library and Swift packages fetched by Swift Package Manager
-at build time (versions pinned in `ios/Tether.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`):
+at build time (versions pinned in `ios/PolTell.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved`):
 
 | Library | Version | Licence | Used for |
 | --- | --- | --- | --- |
-| libopus (`ios/TetherCore/Sources/COpus`, unmodified sources, floating point, no assembly; licence in `COPYING` there) | 1.5.2 | BSD 3-Clause | Opus decoding with packet-loss concealment and encoding on the iPhone |
+| libopus (`ios/PolTellCore/Sources/COpus`, unmodified sources, floating point, no assembly; licence in `COPYING` there) | 1.5.2 | BSD 3-Clause | Opus decoding with packet-loss concealment and encoding on the iPhone |
 | swift-perception (Point-Free) | 2.0.12 | MIT | Observation on iOS 16 (native Observation on iOS 17 and later) |
 | swift-issue-reporting (Point-Free) | 2.1.2 | MIT | Dependency of swift-perception |
 | swift-syntax (Swift project) | 604.0.0 | Apache-2.0 with Runtime Library Exception | Build time only: swift-perception's macros |

@@ -6,7 +6,7 @@
 # android/local.properties), any literal strings you list in tools/private-patterns.txt (git-ignored, one per line:
 # your phone numbers, names, SIM names…), home-directory paths, device ids and Bluetooth addresses, e-mail addresses
 # other than GitHub noreply ones, and commit trailers or assistant names. Matches are reported by file and line, never
-# by value. Vendored third-party code (ios/TetherCore/Sources/COpus) is not scanned.
+# by value. Vendored third-party code (ios/PolTellCore/Sources/COpus) is not scanned.
 set -u
 cd "$(dirname "$0")/.."
 exec python3 -I - "$@" <<'PY'
@@ -21,7 +21,7 @@ mode_all = "--all" in sys.argv[1:]
 secrets = []
 def add(label, v):
     v = (v or "").strip().strip('"').strip("'")
-    if len(v) >= 6 and not re.fullmatch(r"(com\.example\.tether|com\.yourname\.tether|ABCDE12345|Cellular|Tether)", v):
+    if len(v) >= 6 and not re.fullmatch(r"(com\.example\.tether|com\.yourname\.tether|ABCDE12345|Cellular|PolTell)", v):
         secrets.append((label, v))
 def kv(path, keys, sep="="):
     if not os.path.exists(path): return
@@ -30,8 +30,8 @@ def kv(path, keys, sep="="):
         if not line or line.startswith(("#", "//")) or sep not in line: continue
         k, v = line.split(sep, 1)
         if k.strip() in keys: add(f"{os.path.basename(path)}:{k.strip()}", v)
-kv("ios/Config/Local.xcconfig", {"TETHER_TEAM_ID", "TETHER_BUNDLE_ID"})
-kv("tools/local.env", {"TETHER_ANDROID_SERIAL", "TETHER_IOS_DEVICE", "ANDROID_SERIAL"})
+kv("ios/Config/Local.xcconfig", {"POLTELL_TEAM_ID", "POLTELL_BUNDLE_ID"})
+kv("tools/local.env", {"POLTELL_ANDROID_SERIAL", "POLTELL_IOS_DEVICE", "ANDROID_SERIAL"})
 kv("android/local.properties", {"tether.signing.storeFile", "tether.signing.storePassword", "tether.signing.keyAlias", "tether.signing.keyPassword", "sdk.dir"})
 if os.path.exists("tools/private-patterns.txt"):
     for i, line in enumerate(open("tools/private-patterns.txt", encoding="utf-8", errors="ignore")):
@@ -45,7 +45,7 @@ patterns = [
     ("e-mail address", re.compile(r"\b(?!this@|super@)[A-Za-z0-9._%+-]+@(?!users\.noreply\.github\.com)(?!example\.(com|org))(?![0-9]x\.)[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.(?!png\b|jpe?g\b|pdf\b|gif\b|svg\b|webp\b)[a-z]{2,6}\b(?!\()")),
     ("assistant or model name", re.compile(r"\b(claude|anthropic|chatgpt|openai|copilot|gemini)\b", re.I)),
 ]
-skip_dirs = ("ios/TetherCore/Sources/COpus/",)
+skip_dirs = ("ios/PolTellCore/Sources/COpus/",)
 skip_files = {"tools/check-private.sh", ".github/copilot-instructions.md"}
 
 findings = []

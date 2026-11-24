@@ -1,6 +1,6 @@
 # Features by Android version
 
-Tether installs on Android 10 (API 29) and later. What works depends on the version, mostly because the shell user
+PolTell installs on Android 10 (API 29) and later. What works depends on the version, mostly because the shell user
 (which the audio helper runs as) is given more permissions by newer Android releases. Only the Samsung Galaxy A54 on
 Android 17 has been tested; the other rows follow from the Android sources and API levels, and are expected, not tried.
 
@@ -20,7 +20,7 @@ Android 17 has been tested; the other rows follow from the Android sources and A
 
 Notes:
 
-- Below Android 12 the Bluetooth runtime permissions do not exist; Tether uses the install-time Bluetooth
+- Below Android 12 the Bluetooth runtime permissions do not exist; PolTell uses the install-time Bluetooth
   permissions. Android 13 added the notification permission.
 - On Android 10 a call's SIM is found by the SIM's card id; if the phone does not expose it, the SIM choice for
   placing a call may fall back to the default.

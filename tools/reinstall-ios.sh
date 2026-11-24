@@ -5,7 +5,7 @@
 #   tools/reinstall-ios.sh --force    renew the signing profile now
 # Needs: Xcode signed in to your Apple account (Xcode › Settings › Accounts), ios/Config/Local.xcconfig with your
 # team and bundle id (docs/BUILD.md), the device unlocked and connected (cable, or the same Wi-Fi once paired in
-# Xcode). With several devices connected, set TETHER_IOS_DEVICE in tools/local.env or pick one when asked.
+# Xcode). With several devices connected, set POLTELL_IOS_DEVICE in tools/local.env or pick one when asked.
 # Log: ~/Library/Logs/tether-reinstall.log
 
 ROOT=${0:A:h:h}
@@ -13,13 +13,13 @@ ROOT=${0:A:h:h}
 if [[ -z "$DEVELOPER_DIR" && -d /Applications/Xcode.app ]]; then export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer; fi
 RENEW_WHEN_DAYS_LEFT=6
 PROFILES="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
-APP="$ROOT/ios/build/Build/Products/Debug-iphoneos/Tether.app"
+APP="$ROOT/ios/build/Build/Products/Debug-iphoneos/PolTell.app"
 LOG="$HOME/Library/Logs/tether-reinstall.log"
 STAMP="$HOME/Library/Application Support/tether-reinstall.last"
 mkdir -p "${STAMP:h}" "${LOG:h}"
 
 log() { print -r -- "$(date '+%Y-%m-%d %H:%M:%S') $*" >> "$LOG"; [[ -t 1 ]] && print -r -- "$*"; return 0; }
-notify() { osascript -e "display notification \"$2\" with title \"Tether reinstall\" subtitle \"$1\"" >/dev/null 2>&1; }
+notify() { osascript -e "display notification \"$2\" with title \"PolTell reinstall\" subtitle \"$1\"" >/dev/null 2>&1; }
 fail() { log "FAILED: $1"; notify "Not reinstalled" "$1"; exit 1; }
 
 # Days until the given .mobileprovision expires (negative when expired, -999 when unreadable).
@@ -35,8 +35,8 @@ log "---- run start (force=$force)"
 [[ -f "$ROOT/ios/Config/Local.xcconfig" ]] || fail "ios/Config/Local.xcconfig is missing: copy Local.xcconfig.example and set your team and bundle id."
 command -v xcodegen >/dev/null && (cd "$ROOT/ios" && xcodegen generate -q >/dev/null 2>&1)
 
-# 1. The device: TETHER_IOS_DEVICE, else the only iPhone / iPad devicectl knows, else ask.
-DEVICE=$TETHER_IOS_DEVICE
+# 1. The device: POLTELL_IOS_DEVICE, else the only iPhone / iPad devicectl knows, else ask.
+DEVICE=$POLTELL_IOS_DEVICE
 if [[ -z "$DEVICE" ]]; then
   json=$(mktemp); xcrun devicectl list devices --json-output "$json" >/dev/null 2>&1
   n=$(plutil -extract result.devices raw -o - "$json" 2>/dev/null || print 0)
@@ -53,7 +53,7 @@ if [[ -z "$DEVICE" ]]; then
     for (( i = 1; i <= ${#ids}; i++ )); do print -r -- "  $i) ${names[$i]}  (${ids[$i]})"; done
     read "pick?Which device? " ; DEVICE=$ids[$pick]
     [[ -n "$DEVICE" ]] || fail "No device chosen."
-  else fail "Several devices found: set TETHER_IOS_DEVICE in tools/local.env."
+  else fail "Several devices found: set POLTELL_IOS_DEVICE in tools/local.env."
   fi
 fi
 
@@ -70,7 +70,7 @@ log "device reachable"
 
 # 2. Renew this app's signing profile before it runs out: with its local copy gone, Xcode fetches a fresh one.
 #    Only profiles for this bundle id are touched.
-BUNDLE=$(cd "$ROOT/ios" && xcodebuild -project Tether.xcodeproj -scheme Tether -configuration Debug -showBuildSettings 2>/dev/null \
+BUNDLE=$(cd "$ROOT/ios" && xcodebuild -project PolTell.xcodeproj -scheme PolTell -configuration Debug -showBuildSettings 2>/dev/null \
   | awk -F' = ' '/ PRODUCT_BUNDLE_IDENTIFIER = / { print $2; exit }')
 left=-999
 [[ -f "$APP/embedded.mobileprovision" ]] && left=$(days_left "$APP/embedded.mobileprovision")
@@ -87,14 +87,14 @@ if (( force || left < RENEW_WHEN_DAYS_LEFT )); then
 fi
 restore_profiles() { for p in $moved; do [[ -f "$PROFILES/old/$p" ]] && mv "$PROFILES/old/$p" "$PROFILES/"; done; }
 
-# 3. Build and sign. First with the paid-team entitlements in Tether.entitlements (Communication Notifications:
+# 3. Build and sign. First with the paid-team entitlements in PolTell.entitlements (Communication Notifications:
 #    sender's picture in message notifications; Default Calling App: tel: links open this app); a free Apple account
 #    can have neither, so the build is repeated without them.
 build() {   # $1 = comm | plain
   local -a extra
-  [[ "$1" == comm ]] && extra=(TETHER_ENTITLEMENTS=Tether/Resources/Tether.entitlements TETHER_COMM_NOTIFICATIONS=YES)
-  [[ "$1" == plain ]] && extra=(TETHER_ENTITLEMENTS= TETHER_COMM_NOTIFICATIONS=NO)
-  out=$(cd "$ROOT/ios" && xcodebuild -project Tether.xcodeproj -scheme Tether -configuration Debug \
+  [[ "$1" == comm ]] && extra=(POLTELL_ENTITLEMENTS=PolTell/Resources/PolTell.entitlements POLTELL_COMM_NOTIFICATIONS=YES)
+  [[ "$1" == plain ]] && extra=(POLTELL_ENTITLEMENTS= POLTELL_COMM_NOTIFICATIONS=NO)
+  out=$(cd "$ROOT/ios" && xcodebuild -project PolTell.xcodeproj -scheme PolTell -configuration Debug \
     -destination "id=$DEVICE" -destination-timeout 60 -derivedDataPath build -allowProvisioningUpdates -skipMacroValidation \
     "${extra[@]}" build 2>&1)
   [[ "$out" == *"BUILD SUCCEEDED"* ]]

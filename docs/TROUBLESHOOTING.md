@@ -55,11 +55,11 @@ card in the Android app says which case you are in.
 3. The Android version must be 13 or later, and the build must let the shell user intercept call audio. Not every
    manufacturer allows it. If no path works, calls still work from the iPhone but their audio stays on the
    Android phone. Please report your model and the self-test result.
-4. You hear the other side on the Android phone too: PolTell mutes the phone's own earpiece and microphone during a
-   bridged call with each vendor's controls: Samsung (tested), Qualcomm and MediaTek (from their audio sources,
-   untested). Other phones (Google Pixel and unknown chips) get the earpiece muted only. The Link tab shows it
-   under **Call audio › Android phone silent**. On MediaTek, PolTell never mutes the microphone through Android,
-   because there that also mutes what the iPhone sends.
+4. You hear the other side on the Android phone too: PolTell silences the phone's own earpiece during a bridged call
+   with each vendor's controls: Samsung (tested), Qualcomm and MediaTek (from their audio sources, untested), the
+   voice-call volume on other phones. The phone's own **microphone stays on** unless you turn on **Mute this phone's
+   microphone during bridged calls** (see the next section for why). The Link tab shows it under **Call audio ›
+   Android phone silent**.
 
 ### Headset or car
 
@@ -67,6 +67,52 @@ card in the Android app says which case you are in.
   Bluetooth settings; music-only (A2DP) speakers have no microphone and are not offered for calls.
 - The Link log shows each route change as `audio route bluetooth / car / receiver / speaker` with its reason. If
   the route changes but the far end goes quiet for more than a second, please report the lines around it.
+
+## The other side cannot hear me
+
+You hear the other side, but they hear nothing (or only the Android phone's surroundings) of what you say on the
+iPhone. The iPhone's voice is injected into the call's uplink by the Android phone. Things that can stop it:
+
+- **The injection did not open.** Some phones refuse it, or refuse it until the call is fully connected.
+- **The redirect audio mode on a phone that mishandles it.** By default (**This phone's microphone during bridged
+  calls: Off during calls**, Android app › Call audio, or the picker in the iPhone's Link tab) PolTell puts the call in
+  Android's redirect audio mode (Android 13+), in which the phone's own microphone and earpiece leave the call. PolTell
+  checks every call: when the downlink goes silent in that mode, or your speech stops reaching the uplink, it gives
+  the call its own mode back and remembers that for the phone model; the next calls try the next mode or keep the
+  microphone on. Some phones cannot show their uplink to this check: there PolTell keeps the mode once nothing else went
+  wrong.
+- **The Android phone's microphone mute** (only with **Muted**). On several phones (MediaTek for certain, Qualcomm
+  audio systems, possibly Samsung's own key) muting the phone's microphone also mutes the injected voice. PolTell
+  checks during each call, turns the mute off when your voice does not get through and remembers it.
+- **The iPhone sends silence**: PolTell may not use the iPhone's microphone (Settings › Privacy & Security ›
+  Microphone; the Link tab warns in red), or the call is muted on the iPhone.
+
+With **On** the Android phone's own microphone stays in the call: the other side may hear your voice twice (the
+phone in the room hears you too), the bag's noise, and their own voice from the iPhone's speaker. **Off during
+calls** avoids that where the phone allows it.
+
+What to do:
+
+1. Make sure the setting is **Off during calls** (the default) and call again. If the other side still hears
+   nothing, try **On**: if that helps, please report it (step 4).
+2. During a call, on the iPhone: **Link › Call audio › Run call-audio self-test** (or the same button in the Android
+   app). It pauses the call audio for a few seconds and plays tones the other side may hear. Its rows:
+   - `call-audio`: how your call ran until then: the inject and capture methods (`NONE` when the injection did not
+     open) and what the phone's microphone did (out of the call in which mode, muted, or on).
+   - `inject:<method>`: a tone through each inject method, listened for in the call's uplink.
+   - `mic:call_redirect` (and `mic:call_screening` where the phone declares it): the phone's microphone level, the
+     tone and the downlink without and with that mode, and a verdict: `ok` (the microphone left the call, or the tone
+     still gets through), `no-effect` (the microphone stays in the call), `breaks-uplink` / `breaks-downlink` (a
+     direction went silent), `refused`, `unverified` (this phone shows neither). PolTell remembers it for the model.
+   - `inject:<method>, phone mic muted`: the working method once more with the microphone muted.
+3. Open **Link › Link log** on the iPhone (or `tools/dbg.sh linklog` on the Android phone). Each call writes a line
+   starting `call audio path:` (whether the uplink injection opened, with which method, what the microphone does),
+   `call audio: call_redirect on` / `reverted` lines when the mode changed (with the reason), `uplink check …` lines,
+   `remembered for this phone …` when a result was stored, and a `call audio:` summary at the end with the uplink
+   figures (`uplink speech N frames`: 0 means the iPhone sent only silence).
+4. Report it (GitHub issue) with: the Android phone's model and Android version, the iPhone model and iOS version,
+   the microphone setting, every self-test row (name, ✓ / ✗ and its note), and the `call audio path:`,
+   `call audio: …` and `uplink check` lines of one failed call. Leave out phone numbers.
 
 ## The audio helper does not start
 

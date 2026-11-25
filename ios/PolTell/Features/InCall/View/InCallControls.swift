@@ -1,6 +1,6 @@
 import Perception
 import SwiftUI
-import PolTellCore
+@_spi(PolTellApp) import PolTellCore
 
 /// "calling…", "00:42", "on hold", "Call ended" – ticking once a second.
 struct CallStatusText: View {

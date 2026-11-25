@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+## PolTell 0.7.0 — 2026-11-25
+
+The iPhone app's logic is now Tether 1.1.0's, line for line (renamed to PolTell); only the look (MVVM screens, Liquid
+Glass, purple brand, PolTell names) is PolTell's own.
+
+- Link tab › Call audio: the Android phone's microphone during calls (Off during calls / Muted / On) and what it does
+  in the current call, whether your voice reaches the other side, inject and capture methods, a warning when this
+  iPhone denies PolTell the microphone; self-test notes can be selected.
+- Extensions (protocol §7): `caps` in `sync`, the extension registry and `x.tether.echo`; a Debug-only Developer row
+  with an echo round trip. docs/EXTENDING.md.
+- PolTellCore follows TetherCore 1.1.0: builds on Linux (swift-crypto, a portable lock, a detection fallback), public
+  initialisers for every message body, `audio.set`, the new `status` / `selftest.result` fields, the playout
+  statistics fixes; DocC catalog and a root `Package.swift`. docs/SDK-swift.md.
+- Version 0.7.0 (build 70099), the same as the Android app.
+
 - Dates (also Persian calendar ones), version numbers, IP addresses and amounts in texts are no longer shown as
   phone numbers on the iPhone or the Android client, or picked by "Call with"; numbers written with dots
   (555.123.4567) now are.

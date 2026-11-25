@@ -1,4 +1,8 @@
+#if canImport(CryptoKit)
 import CryptoKit
+#else
+import Crypto
+#endif
 import Foundation
 import XCTest
 @testable import PolTellCore
@@ -22,7 +26,7 @@ final class UtilTests: XCTestCase {
         let parts = c.string.dropFirst(PairingCode.prefix.count).split(separator: ".", omittingEmptySubsequences: false).map(String.init)
         let shortKey = Data(c.peripheralKey.dropLast()).base64URL()
         var compressed = c.peripheralKey; compressed[0] = 0x02
-        for bad in [
+        let bads: [String] = [
             "TETHER1:" + parts.joined(separator: "."),
             PairingCode.prefix + parts[0] + "." + parts[1],
             PairingCode.prefix + parts.joined(separator: ".") + ".x",
@@ -31,7 +35,8 @@ final class UtilTests: XCTestCase {
             PairingCode.prefix + parts[0] + "." + Data(count: 15).base64URL() + "." + parts[2],
             PairingCode.prefix + parts[0] + "." + parts[1] + "." + Data([0xFF, 0xFE]).base64URL(),
             PairingCode.prefix + parts[0] + "." + parts[1] + "." + "!!",
-        ] {
+        ]
+        for bad in bads {
             XCTAssertNil(PairingCode.parse(bad), bad)
         }
     }

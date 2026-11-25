@@ -84,7 +84,8 @@ public enum DialLink {
         if let r = text.range(of: #"(?i)\b(tel|telprompt):[^\s<>"']+"#, options: .regularExpression),
            let n = number(fromLink: String(text[r])) { return n }
         let t = NumberShape.maskingNonPhones(OTPExtractor.normalizeDigits(text))
-        let pattern = #"\+?\(?\d[\d \-.()/\u{00A0}]{3,}\d(\s*(;|,|ext\.?|x)\s*\d+)?"#
+        // \x{00A0} (no-break space) is the ICU escape every Foundation understands; \u{00A0} parses on Apple platforms only.
+        let pattern = #"\+?\(?\d[\d \-.()/\x{00A0}]{3,}\d(\s*(;|,|ext\.?|x)\s*\d+)?"#
         var search = t.startIndex..<t.endIndex
         while let r = t.range(of: pattern, options: [.regularExpression, .caseInsensitive], range: search) {
             let found = String(t[r])

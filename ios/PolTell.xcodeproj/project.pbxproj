@@ -53,6 +53,7 @@
 		6B1C3C89C2F0385A74D91B2C /* StatusStripViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05A89F6861FA4A317B7F2338 /* StatusStripViewModel.swift */; };
 		6E98761DE53BD22C23497C71 /* AppModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A885154DB0C651F4B6A424 /* AppModel.swift */; };
 		6FFB24064DA72D815A8694E6 /* LinkLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D04B23975A835FD5E7A40323 /* LinkLogView.swift */; };
+		DFB2B8DCAAD0C5347DF50D37 /* DeveloperSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = F04B2C4A1E51BCD6EAB1F320 /* DeveloperSection.swift */; };
 		70BF9C4140CFD3C0F997D32F /* FavouriteRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = F206626E7B67373F8EADAAE5 /* FavouriteRow.swift */; };
 		750E8878AA3F79152CAFCF66 /* ContactDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A05788CAE46E8E058BDB4C6 /* ContactDetailView.swift */; };
 		762FE09275C7F06048A0FC51 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 6179FF552724318B13E7A7FA /* InfoPlist.strings */; };
@@ -66,6 +67,8 @@
 		8DB197DFB26909016839E6F4 /* ContactsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBBAD8A1F4C1E3928F37BD74 /* ContactsViewModel.swift */; };
 		92D1C405DF0C47E90DD0BAFB /* RecentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2101416BC37CE0446CB906C2 /* RecentsView.swift */; };
 		95ABEB5C32036766DFBA5AA0 /* RouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6D107F01C9D3F12AF9A2E505 /* RouterTests.swift */; };
+		419528423060E55BB1564A41 /* ExtensionRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25EB2386D1AED11C2F9C51FD /* ExtensionRouterTests.swift */; };
+		04524084554A4A7E5B29A489 /* CallAudioRowsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A22995489E8A3D6CC01CCE8B /* CallAudioRowsTests.swift */; };
 		97282A9622685027A1CE8C64 /* BubbleViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5D6CEE37FB04172F722E8BD5 /* BubbleViewModel.swift */; };
 		9A72E45EA5087532625895A2 /* ContactDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2522F98C00A26F90DAB6D68E /* ContactDetailViewModel.swift */; };
 		9B367D50DA126139843430A0 /* Date+Millis.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5809A68D14B047B58233D6FB /* Date+Millis.swift */; };
@@ -159,6 +162,8 @@
 		6B2A925C567BD123349841B1 /* ReturnToCallBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReturnToCallBanner.swift; sourceTree = "<group>"; };
 		6C0AF1CCCF9AD94B4E782432 /* TranscriptRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptRow.swift; sourceTree = "<group>"; };
 		6D107F01C9D3F12AF9A2E505 /* RouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouterTests.swift; sourceTree = "<group>"; };
+		25EB2386D1AED11C2F9C51FD /* ExtensionRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtensionRouterTests.swift; sourceTree = "<group>"; };
+		A22995489E8A3D6CC01CCE8B /* CallAudioRowsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallAudioRowsTests.swift; sourceTree = "<group>"; };
 		6FAF5F36725DFE3D7C64E729 /* TimeFormat.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormat.swift; sourceTree = "<group>"; };
 		724CF0AA17AC1FF665CD8AE4 /* InCallViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InCallViewModel.swift; sourceTree = "<group>"; };
 		72BD2AC0238E12BC55C2F813 /* IdentityStores.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IdentityStores.swift; sourceTree = "<group>"; };
@@ -188,6 +193,7 @@
 		CBBAD8A1F4C1E3928F37BD74 /* ContactsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactsViewModel.swift; sourceTree = "<group>"; };
 		CFE768CE37CE88875C5A13F2 /* LinkViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkViewModel.swift; sourceTree = "<group>"; };
 		D04B23975A835FD5E7A40323 /* LinkLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkLogView.swift; sourceTree = "<group>"; };
+		F04B2C4A1E51BCD6EAB1F320 /* DeveloperSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeveloperSection.swift; sourceTree = "<group>"; };
 		D2968BE0BB5BA9A8E27E55AA /* fa */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fa; path = fa.lproj/Localizable.strings; sourceTree = "<group>"; };
 		D33D41109A01BB7F17A0AA20 /* KeypadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeypadViewModel.swift; sourceTree = "<group>"; };
 		D451AC1EB9D7C69AFAAE60FE /* LinkCardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkCardStyle.swift; sourceTree = "<group>"; };
@@ -561,6 +567,7 @@
 				D451AC1EB9D7C69AFAAE60FE /* LinkCardStyle.swift */,
 				FB5EA7A2B127D2D4CC161051 /* LinkDashboard.swift */,
 				D04B23975A835FD5E7A40323 /* LinkLogView.swift */,
+				F04B2C4A1E51BCD6EAB1F320 /* DeveloperSection.swift */,
 				EFAF239DBF09B092528BD199 /* LinkSections.swift */,
 				F8390282ECA60B0BAF61A798 /* LinkView.swift */,
 				F03489B44BBDCA9C94695860 /* PairingView.swift */,
@@ -607,6 +614,8 @@
 				E42483A1C24B64FD1A33EC69 /* DisplayTests.swift */,
 				795420E6861776DCFA93064E /* LinkJournalTests.swift */,
 				6D107F01C9D3F12AF9A2E505 /* RouterTests.swift */,
+				25EB2386D1AED11C2F9C51FD /* ExtensionRouterTests.swift */,
+				A22995489E8A3D6CC01CCE8B /* CallAudioRowsTests.swift */,
 				4C4D85850301725F4E0D7D84 /* SnapshotStoreTests.swift */,
 				19893B300B66F699AAE29271 /* TestSupport.swift */,
 				6D8E24872C2C98756C7C3522 /* Fixtures */,
@@ -847,6 +856,7 @@
 				37B892B3238034C931B7B4CE /* LinkCardStyle.swift in Sources */,
 				B4856FC803372FCDF799E076 /* LinkDashboard.swift in Sources */,
 				6FFB24064DA72D815A8694E6 /* LinkLogView.swift in Sources */,
+				DFB2B8DCAAD0C5347DF50D37 /* DeveloperSection.swift in Sources */,
 				31A7A6DEC0FF60A71E37DCAB /* LinkSections.swift in Sources */,
 				507012025AF85586879B2E5D /* LinkView.swift in Sources */,
 				85B67CD0A52183E439B8BF0E /* LinkViewModel.swift in Sources */,
@@ -892,6 +902,8 @@
 				00BB78D3DA5441C4305F27B6 /* DisplayTests.swift in Sources */,
 				11A8C1EFA28E93024A102637 /* LinkJournalTests.swift in Sources */,
 				95ABEB5C32036766DFBA5AA0 /* RouterTests.swift in Sources */,
+				419528423060E55BB1564A41 /* ExtensionRouterTests.swift in Sources */,
+				04524084554A4A7E5B29A489 /* CallAudioRowsTests.swift in Sources */,
 				4544AD33AA78FE267E4D5ED7 /* SnapshotStoreTests.swift in Sources */,
 				B92F54F2B11D734E14F0EBA4 /* TestSupport.swift in Sources */,
 			);
@@ -999,7 +1011,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 70099;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -1018,7 +1030,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.7.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1065,7 +1077,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 70099;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1078,7 +1090,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.7.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

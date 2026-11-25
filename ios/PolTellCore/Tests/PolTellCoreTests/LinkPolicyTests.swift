@@ -50,9 +50,11 @@ final class LinkPolicyTests: XCTestCase {
         XCTAssertEqual(seen.max(), 1001)
     }
 
+    #if canImport(CoreBluetooth)
     func testStateIsConnected() {
         XCTAssertTrue(PolTellLink.State.connected(transport: "l2cap").isConnected)
         XCTAssertFalse(PolTellLink.State.connecting.isConnected)
         XCTAssertFalse(PolTellLink.State.handshaking.isConnected)
     }
+    #endif
 }

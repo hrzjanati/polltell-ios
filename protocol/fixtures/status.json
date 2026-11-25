@@ -35,9 +35,14 @@
       "helper": {
         "state": "running",
         "method": "intercept",
+        "capture": "intercept",
         "up": true,
         "down": true,
-        "silent": "full"
+        "silent": "earpiece",
+        "micMute": false,
+        "uplink": "ok",
+        "mic": "auto",
+        "micPath": "off"
       },
       "wifi": true,
       "adbWifi": true,
@@ -61,7 +66,18 @@
         "ringer": true
       },
       "ringer": "vibrate",
-      "dnd": false
+      "dnd": false,
+      "caps": [
+        "x.tether.echo/1",
+        "x.com.example.battery/1",
+        "x.com.example.battery/2"
+      ],
+      "ext": {
+        "x.com.example.battery": {
+          "low": false,
+          "at": 15
+        }
+      }
     },
     "old": {
       "device": "Test Phone",
@@ -118,9 +134,14 @@
       "helper": {
         "state": "running",
         "method": "intercept",
+        "capture": "intercept",
         "up": true,
         "down": true,
-        "silent": "full"
+        "silent": "earpiece",
+        "micMute": false,
+        "uplink": "ok",
+        "mic": "auto",
+        "micPath": "off"
       },
       "wifi": true,
       "adbWifi": true,
@@ -145,6 +166,17 @@
       },
       "ringer": "vibrate",
       "dnd": false,
+      "caps": [
+        "x.tether.echo/1",
+        "x.com.example.battery/1",
+        "x.com.example.battery/2"
+      ],
+      "ext": {
+        "x.com.example.battery": {
+          "low": false,
+          "at": 15
+        }
+      },
       "futureField": {
         "x": 1
       }

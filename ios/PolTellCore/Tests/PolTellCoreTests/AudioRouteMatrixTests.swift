@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import PolTellCore
+@_spi(PolTellApp) @testable import PolTellCore
 
 /// The call screen's audio menu for every combination of accessories, and the engine rules that once looped.
 final class AudioRouteMatrixTests: XCTestCase {

@@ -1,5 +1,14 @@
+#if canImport(CryptoKit)
 import CryptoKit
+#else
+import Crypto
+#endif
 import Foundation
+
+/// A P-256 key-agreement private key: the long-term identity of a phone or a client, and the handshake's ephemeral
+/// keys. It is `P256.KeyAgreement.PrivateKey` from CryptoKit on Apple platforms and from swift-crypto elsewhere, so
+/// code using this name needs neither import.
+public typealias PolTellPrivateKey = P256.KeyAgreement.PrivateKey
 
 public enum HandshakeMode: UInt8, Sendable {
     case resume = 0
@@ -172,7 +181,8 @@ public final class CentralHandshake {
     }
 }
 
-/// Peripheral side. Used by tests (the real peripheral is the Android app).
+/// Peripheral (phone) side of the handshake. The real peripheral is the Android app; this one serves tests, the
+/// examples and other phone-side implementations.
 public final class PeripheralHandshake {
     private let staticKey: P256.KeyAgreement.PrivateKey
     private let ephemeral: P256.KeyAgreement.PrivateKey

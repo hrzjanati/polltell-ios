@@ -28,6 +28,13 @@ final class AppModel {
     }()
     @PerceptionIgnored let link: PolTellLink
     @PerceptionIgnored private let store = SnapshotStore()
+    /// Extensions (protocol §7, docs/EXTENDING.md): registered in `registerExtensions`; messages reach them only from
+    /// the fallback of `received`, after every core type.
+    @PerceptionIgnored let extensions = ExtensionRegistry(log: { LinkJournal.shared.add("ext: \($0)") })
+    @PerceptionIgnored let extensionPort: LinkExtensionPort
+    @PerceptionIgnored let echo = EchoExtension()
+    /// The last result of the Debug developer row's echo test (Link tab).
+    var extensionLine: String?
     @PerceptionIgnored lazy var calls = CallController(model: self)
     @PerceptionIgnored lazy var audio = CallAudio(model: self, link: link)
 
@@ -83,9 +90,11 @@ final class AppModel {
     private init() {
         data = AppModel.demoMode || AppModel.runningTests ? Snapshot() : store.load()
         link = PolTellLink(store: identity, restoreID: "app.tether.central")
+        extensionPort = LinkExtensionPort(link: link)
         link.delegate = LinkBridge.shared
         link.log = { msg in NSLog("[link] %@", msg); LinkJournal.shared.add(msg) }
         rebuildIndex()
+        registerExtensions()
         #if DEBUG
         loadDemoIfRequested()
         applyDebugLaunchOptions()
@@ -99,6 +108,27 @@ final class AppModel {
         rebuildIndex()
     }
     #endif
+
+    /// Add your extension here (one line), see docs/EXTENDING.md.
+    private func registerExtensions() {
+        for e in [echo] as [PolTellExtension] {
+            do { try extensions.register(e) } catch { NSLog("[ext] not registered: %@", "\(error)") }
+        }
+        // An extension switched off after repeated failures: the Android phone learns it with a new sync.
+        extensions.onCapsChanged = { [weak self] in self?.requestSync() }
+        extensions.start()
+    }
+
+    /// Debug builds (Link › Developer): one x.tether.echo round trip to the Android phone.
+    func echoTest() {
+        guard let s = extensions.session(for: echo) else {
+            extensionLine = "The Android phone does not speak x.tether.echo (older build, or not linked)"; return
+        }
+        echo.onResult = { [weak self] r in
+            self?.extensionLine = r.error.map { "Refused: \($0)" } ?? "\(r.rttMs) ms round trip, clock offset \(r.offsetMs) ms, via \(r.via)"
+        }
+        extensionLine = echo.ping(s) == nil ? "Not sent" : "Waiting for the Android phone…"
+    }
 
     var isPaired: Bool { identity.peerKey != nil }
     var peerName: String { identity.peerName ?? "Android" }
@@ -293,6 +323,7 @@ final class AppModel {
         smsIndex = [:]; pendingSms = [:]; incrementalSync = false
         net = nil; netPending = nil; ussdResult = nil; ussdPending = false; finding = false; phoneToolError = nil
         lastError = nil; selftest = nil; syncing = false; openThread = nil
+        extensions.linkDown(); extensionPort.isUp = false; extensionLine = nil
         rebuildIndex()
     }
 
@@ -326,7 +357,8 @@ final class AppModel {
         let lastCall = full ? 0 : (data.recents.map(\.id).max() ?? 0)
         link.send(MsgType.sync, SyncBodyV1(sms: lastSms, calls: lastCall, contacts: full ? "" : data.contactsVersion,
                                            codecs: CallAudio.supportedCodecs,
-                                           client: ClientHello(kind: Platform.kind, name: Platform.clientName)))
+                                           client: ClientHello(kind: Platform.kind, name: Platform.clientName),
+                                           caps: extensions.caps.isEmpty ? nil : extensions.caps))
         // Conversations read while out of reach.
         for (thread, upTo) in pendingRead { link.send(MsgType.smsRead, SmsRead(thread: thread, upTo: upTo)) }
         pendingRead.removeAll()
@@ -489,6 +521,24 @@ final class AppModel {
         link.send(MsgType.ringerSet, RingerSet(mode: mode), expectReply: true)
     }
 
+    /// The Android phone's "mute its own microphone during bridged calls"; shown at once, confirmed by its next status.
+    func setPhoneMicMute(_ on: Bool) {
+        guard linkState.isConnected, var st = data.lastStatus, st.helper.micMute != nil else { return }
+        link.send(MsgType.audioSet, AudioSet(micMute: on))
+        st.helper.micMute = on
+        data.lastStatus = st
+    }
+
+    /// The Android phone's "its own microphone during bridged calls" ("auto", "mute", "open"; Android builds that report
+    /// `helper.mic`); shown at once, confirmed by its next status.
+    func setPhoneMic(_ mic: String) {
+        guard linkState.isConnected, var st = data.lastStatus, st.helper.mic != nil else { return }
+        link.send(MsgType.audioSet, AudioSet(mic: mic))
+        st.helper.mic = mic
+        st.helper.micMute = mic == "mute"
+        data.lastStatus = st
+    }
+
     func runSelftest() {
         selftest = nil
         link.send(MsgType.selftest, Empty(), expectReply: true)
@@ -499,12 +549,18 @@ final class AppModel {
     func linkChanged(_ s: PolTellLink.State) {
         let wasConnected = linkState.isConnected
         linkState = s
+        if case .connected(let t) = s { extensionPort.transport = t }
         if s.isConnected && !wasConnected {
+            // Before the sync: it carries what the extensions speak.
+            extensionPort.isUp = true
+            extensions.linkUp(extensionPort)
             lastError = nil
             requestSync()
             flushOutbox()
         }
         if !s.isConnected && wasConnected {
+            extensionPort.isUp = false
+            extensions.linkDown()
             calls.linkLost()
             remoteCalls = []
             // A sync cut off mid-way must start clean next time.
@@ -528,6 +584,7 @@ final class AppModel {
             case MsgType.status:
                 // Kept in memory; saved with the next real change (a full snapshot write per status was wasted).
                 data.lastStatus = try Control.body(StatusBody.self, from: payload)
+                extensions.peerCaps(data.lastStatus?.caps)   // absent (older Android builds): no extensions
             case MsgType.smsBatch:
                 let b = try Control.body(SmsBatch.self, from: payload)
                 let recent = Int64(Date().addingTimeInterval(-6 * 3600).timeIntervalSince1970 * 1000)
@@ -680,7 +737,8 @@ final class AppModel {
             case MsgType.selftestResult:
                 selftest = try Control.body(SelftestResult.self, from: payload)
             default:
-                break
+                // Extension types (x.…) and errors answering an extension's request; everything else stays ignored.
+                _ = extensions.route(h, payload)
             }
         } catch {
             NSLog("[model] bad %@: %@", h.t, "\(error)")
@@ -694,6 +752,7 @@ final class AppModel {
 
     private func updateCall(_ c: CallInfo) {
         if c.isEnded { activeCalls[c.cid] = nil } else { activeCalls[c.cid] = c }
+        extensionPort.inCall = !activeCalls.isEmpty
         calls.handle(c)
         remoteCalls = calls.remote.values.sorted { $0.cid < $1.cid }
         #if DEBUG

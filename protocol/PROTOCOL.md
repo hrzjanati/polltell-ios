@@ -162,14 +162,15 @@ in a buffer of up to 1 s whose delay is corrected in quiet frames (cut or repeat
 
 Envelope: `{"t": "<type>", "id": <int>?, "re": <int>?, "b": { ... }?}`.
 `id` is set on requests that expect an answer; the answer carries `re`.
-Unknown types are ignored. Times are Unix milliseconds. Phone numbers are as
-stored on the Android phone.
+Unknown types are ignored; unknown fields too. Types starting with `x.` are extension messages, not core ones: an
+unknown extension type that carries an `id` is answered with `error` (§7.4). Times are Unix milliseconds. Phone
+numbers are as stored on the Android phone.
 
 | Type | Dir | Body |
 |---|---|---|
 | `ping` / `pong` | both | `{ts}` |
-| `status` | P→C | `{device, battery, charging, sims:[{slot, sub, name, carrier, number?, signal, net?, service?, roaming?, country?}], defaultSub?, dialer, helper:{state, method?, up, down, silent?}, wifi, adbWifi, clients?:[{name, kind, self?, audio?}]}` (`clients`: every connected client; `self` marks the receiver, `audio` the one call audio goes to; per SIM: `signal` 0–4, `net` "5G" \| "LTE+" \| "LTE" \| "H+" \| "H" \| "3G" \| "E" \| "2G", `service` "in" \| "none" \| "emergency" \| "off", `roaming`, `country` the SIM's lowercase ISO 3166 code (else the network's; optional, for grouping national numbers on display). Pushed again within ~2 s of a signal / network change). Optional, from builds with the phone tools: `tools:{ussd, find, ringer}` (clients hide the matching controls when absent), `ringer` "normal" \| "vibrate" \| "silent", `dnd` (Do Not Disturb access granted) |
-| `sync` | C→P | `{sms: lastId, calls: lastId, contacts: version, codecs: ["opus", "pcmu"], client?: {kind: "iphone" \| "android", name}}` (0 / "" for a full sync; `codecs` = what the client can decode/encode, best first; `client` names it in the Android phone's device list; `kind` "android" is the Android client, see §5.1) |
+| `status` | P→C | `{device, battery, charging, sims:[{slot, sub, name, carrier, number?, signal, net?, service?, roaming?, country?}], defaultSub?, dialer, helper:{state, method?, capture?, up, down, silent?, micMute?, uplink?, mic?, micPath?}, wifi, adbWifi, clients?:[{name, kind, self?, audio?}]}` (`helper.method` / `capture`: the call-audio inject / capture method of the current or last call; `silent` "full" \| "earpiece" \| "none": how silent the Android phone itself is during a bridged call; `micMute`: the setting "mute the Android phone's microphone during bridged calls", absent from builds without it (clients hide the switch; newer builds keep sending it, true only when `mic` is "mute"); `mic`: the setting "the Android phone's microphone during bridged calls", "auto" (default: a redirect audio mode takes the phone's mic and earpiece out of the call where the phone allows it, else the mic stays on) \| "mute" \| "open", absent from builds before it (clients then show the `micMute` switch); `micPath`: during a bridged call, what the phone's own mic does, "off" (out of the call) \| "muted" \| "open"; `uplink`: whether the client's voice reaches the call, "checking" \| "ok" \| "muted-locally-fixed" (the phone's mic mute silenced it and was undone; calls on this phone start without it) \| "unverified" \| "off" (no local mic mute this call): this call's check, else what the phone remembers; `clients`: every connected client; `self` marks the receiver, `audio` the one call audio goes to; per SIM: `signal` 0–4, `net` "5G" \| "LTE+" \| "LTE" \| "H+" \| "H" \| "3G" \| "E" \| "2G", `service` "in" \| "none" \| "emergency" \| "off", `roaming`, `country` the SIM's lowercase ISO 3166 code (else the network's; optional, for grouping national numbers on display). Pushed again within ~2 s of a signal / network change). Optional, from builds with the phone tools: `tools:{ussd, find, ringer}` (clients hide the matching controls when absent), `ringer` "normal" \| "vibrate" \| "silent", `dnd` (Do Not Disturb access granted). Optional, from builds with extensions (§7): `caps:["<id>/<major>"]` (the Android phone's extensions), `ext:{"<id>": {…}}` (their status fields, only those the receiving client agreed) |
+| `sync` | C→P | `{sms: lastId, calls: lastId, contacts: version, codecs: ["opus", "pcmu"], client?: {kind: "iphone" \| "android", name}, caps?: ["<id>/<major>"]}` (0 / "" for a full sync; `codecs` = what the client can decode/encode, best first; `client` names it in the Android phone's device list; `kind` "android" is the Android client, see §5.1; `caps`: the client's extensions, §7.2, absent when it has none) |
 | `sms.batch` | P→C | `{items:[Sms], more}` |
 | `sms.new` | P→C | `{item: Sms}` |
 | `sms.send` | C→P | `{to, body, sub?}` → `sms.result` `{ok, state: "sent"\|"delivered"\|"failed", err?}` (may arrive twice: sent, then delivered) |
@@ -189,7 +190,8 @@ stored on the Android phone.
 | `audio.start` | P→C | `{codec: "opus"\|"pcmu", rate, ms, up, bitrate?}` (`bitrate`: what the Android phone encodes at; the client uses it for the uplink) |
 | `audio.stop` | P→C | `{}` |
 | `audio.stats` | P→C | `{summary, helper?}`: the Android phone's half of a call's audio statistics, sent ~0.5 s after `audio.stop` to the client that had the audio (`summary`: one line for its log; `helper`: the shell helper's figures). Optional, informational |
-| `selftest` | C→P | `{}` → `selftest.result` `{methods:[{name, ok, note, delayMs?}], chosen?}` (`delayMs`: an inject method's measured delay into the call uplink) |
+| `selftest` | C→P | `{}` → `selftest.result` `{methods:[{name, ok, note, delayMs?}], chosen?, silence?, micByTelecom?}` (`delayMs`: an inject method's measured delay into the call uplink; first row `call-audio`: the call's own inject / capture method and whether the phone's mic was muted; rows `mic:<mode>` (`call_redirect`, `call_screening`, `communication_redirect`) test a redirect audio mode: the uplink's level with nothing injected (the phone's mic), the injected tone and the downlink, without and with the mode, with an optional `verdict` "ok" \| "unverified" \| "breaks-downlink" \| "breaks-uplink" \| "refused" \| "no-effect" that the phone remembers for its model; a last row `inject:<method>, phone mic muted` repeats the chosen method with the mic muted, and its answer is remembered like the in-call check's; optional `redirect: {mode: verdict}`, `callMode`) |
+| `audio.set` | C→P | `{mic}` ("auto" \| "mute" \| "open", to Android builds whose status has `helper.mic`) or `{micMute}` (older builds; true reads as "mute", false as "auto"): change the setting "the Android phone's microphone during bridged calls" (it also forgets earlier check results); applied to a running call at once and answered with a `status` |
 | `sms.read` | both | `{thread, upTo}`: read on a client; the Android phone marks it read and forwards it to the other clients |
 | `sms.unread` | P→C | `{ids:[id], all}`: the Android phone's unread incoming texts, after every sync and within ~2 s of a read-state change there; everything else is read (`all` false: list capped at 3000, only ids ≥ its smallest are known) |
 | `sms.delete` | C→P | `{ids?:[id], thread?}` → `sms.deleted` `{ok, ids:[id], thread?, err?}` to the asking client (with `re`) and to every other client (see §5.2) |
@@ -202,7 +204,7 @@ stored on the Android phone.
 | `phone.find` / `phone.finding` | C→P / P→C | `{on}` → `{on, err?}`: the Android phone rings on the alarm stream at maximum alarm volume for at most 30 s (volume restored afterwards; stops on `on:false`, the notification's Stop action or a screen unlock). `phone.finding` is also pushed to every client when it starts or stops |
 | `ringer.set` / `ringer.result` | C→P / P→C | `{mode: "normal"\|"vibrate"\|"silent"}` → `{ok, mode, err?}` (`err` e.g. Do Not Disturb access missing for silent); `status` then carries the new `ringer` |
 | `unpair` | C→P | `{}` (peripheral forgets `S_C`) |
-| `error` | both | `{msg}` |
+| `error` | both | `{msg, t?, code?}` (`t`, `code`: set when an extension message is refused, §7.4) |
 
 Objects:
 
@@ -296,15 +298,134 @@ Frames: `type: u8 ‖ len: u32 ‖ payload`.
 | type | Dir | Payload |
 |---|---|---|
 | 1 HELLO | H→A | JSON `{pid, uid, sdk, version, apk}` (`apk`: the helper's class path; a different one means a stale helper, relaunched) |
-| 2 START | A→H | JSON `{rate, capture, inject, injectMs?}` (`auto` tries every method in order; `injectMs`: cap of the uplink playback buffer, default 40) |
+| 2 START | A→H | JSON `{rate, capture, inject, injectMs?, testLine?, mic?, micMute?, micCheck?, redirect?}` (`auto` tries every method in order; `injectMs`: cap of the uplink playback buffer, default 40; `mic`: auto \| mute \| open, absent: "mute" when `micMute` is true, else "auto"; `micMute`: with "mute", mute the phone's own microphone this call, default false; `micCheck`: then watch the uplink, default true; `redirect`: `{mode: verdict}` what this phone model showed of the redirect modes, so a failed one is skipped) |
 | 3 STOP | A→H | – |
 | 4 DOWN | H→A | PCM 16-bit LE mono, 20 ms |
 | 5 UP | A→H | PCM 16-bit LE mono, 20 ms |
-| 6 INFO | H→A | JSON `{capture, inject, method, earpiece, silent, silence, telecomMicMute, error?}` (`silence`: how the phone's own earpiece / mic are silenced: samsung, qualcomm, mediatek, other; `silent`: full, earpiece, none; `telecomMicMute` false: the app must not mute the mic through Telecom), or `{stats}` at stop; replies `{probe}`, `{selftest}`, `{net}` (a reply after its request timed out is dropped) |
+| 6 INFO | H→A | JSON `{capture, inject, routed, earpiece, silent, silence, telecomMicMute, uplink, mic, errors}` at a call's audio start (`silence`: how the phone's own earpiece / mic are silenced: samsung, qualcomm, mediatek, other; `silent`: full, earpiece, none; `telecomMicMute` true: the app mutes the mic through Telecom, never otherwise), `{uplink: {state, micMuted, telecomMicMute, vendorMicMute, unmuted, note, local}}` whenever the mic mute or the uplink check changes (`state` as status `helper.uplink`; `unmuted`: the check undid the mute), `{mic: {setting, path, mode?, state?, verdict?, reasserts?, note}}` with the start INFO and whenever the redirect mode changes (`path` off \| muted \| open; `state` waiting \| on \| reverted \| stopped; `verdict` as in `selftest.result`, for the app to remember; the `uplink` report then has `for: "redirect"`, else `for: "mute"`), or `{stats}` at stop; replies `{probe}`, `{selftest}`, `{net}` (a reply after its request timed out is dropped) |
 | 7 PROBE | A→H | – (answers INFO `{probe: …}`) |
 | 8 QUIT | A→H | – (helper exits) |
-| 9 SELFTEST | A→H | – (answers INFO `{selftest: …}`; needs a live call) |
+| 9 SELFTEST | A→H | – or JSON `{methods?, micMute?, redirect?}` (answers INFO `{selftest: …}`; needs a live call; `micMute`: the vendor's mic key is on during the test; without it the redirect modes are tested too unless `redirect` is false) |
+| 15 LOCAL | A→H | JSON `{mic?, micMute, micCheck?, redirect?}`: the mic setting changed during a bridged call (answers INFO `{uplink, mic}`) |
 | 11 NET | A→H | JSON `{what?, on?, sub?, …}` (network switches; no `what` only reads; answers INFO `{net: …}`) |
 | 10 AUTH | A→H | 16-byte nonce ‖ 32-byte HMAC (see above) |
 | 12 CHALLENGE | H→A | 16-byte nonce |
 | 14 PROOF | H→A | 32-byte HMAC |
+
+## 7. Extensions
+
+Extensions add features on top of the link without changing the core apps or this document's §5: their messages
+travel in the same sealed session (§4) and the same control envelope (§5), under a reserved namespace, and each side
+says which ones it speaks. Builds from before 2026-11-23 know nothing of them and keep working: they never see an
+extension message (nobody sends one to a peer that did not announce it) and ignore the new fields. How to write
+one: [docs/EXTENDING.md](../docs/EXTENDING.md).
+
+### 7.1 Names
+
+An **extension id** is `x.` followed by a reverse-DNS name the author controls, at least two labels, lowercase:
+`x.com.example.battery`. Labels match `[a-z0-9][a-z0-9-]*`; an id is at most 48 characters. `x.tether.*` is reserved
+for extensions shipped in this repository.
+
+An extension's **message types** are its id itself or the id plus one label (`x.com.example.battery`,
+`x.com.example.battery.low`), at most 64 characters. Types without the `x.` prefix are core types: only §5 defines
+them, and an implementation refuses to register an extension that claims one, so no extension can handle, replace or
+send a core message. Each type belongs to exactly one extension.
+
+### 7.2 Capabilities
+
+Each side announces what it speaks in a `caps` array of `"<id>/<major>"` strings (`"x.tether.echo/1"`):
+
+- the client in every `sync` (its first message of a session, and any later re-sync);
+- the Android phone in every `status` (pushed at every link up and again whenever it changes, so an extension can
+  be switched on or off at run time).
+
+An extension that speaks several major versions lists each. Entries without the `x.` prefix are reserved for core
+features (none are defined; receivers ignore entries they do not know), malformed entries are ignored, at most 64
+entries count. An absent `caps` means none: every build from before extensions. The latest list of a session
+replaces the previous one; both are forgotten when the session ends. For each extension the **agreed version** is the
+highest major in both lists; without one the extension is off on that link.
+
+Why these two messages rather than a new one: they already open every session in both directions, so negotiating
+costs no message and no round trip, a client's extensions are known before the first answer to its sync, and older
+apps already ignore unknown fields in both (pinned by the `unknown` fixture variants). A dedicated message would add a
+core type, an ordering problem against `sync`, and nothing an older peer could use.
+
+### 7.3 Sending
+
+- An unsolicited extension message (no `re`) goes only to a peer that agreed a version of its extension. A request
+  carries an `id`; the answer (same or another type of the extension) carries `re`. An answer to a peer's request is
+  always allowed, agreed or not.
+- `id`s are the sender's own; a sender keeps them unique among all its open requests, core and extension alike (the
+  iPhone draws both from one counter; the Android apps start their extensions' ids at 2^30, far from their own).
+- **Size:** the whole encoded envelope is at most 16 384 bytes, and at most 2 048 bytes while call audio runs on that
+  link (a large record holds the next audio frames back). Larger data is paged by the extension.
+- **Rate:** at most 20 extension messages per second per link and direction, in bursts of at most 40. A receiver
+  drops what goes over, silently.
+- Extension messages never use the urgent queue or the wake characteristic (§1): they never wake a suspended iPhone
+  and never go ahead of call events or audio.
+
+### 7.4 Receiving
+
+1. Core types (§5) are handled by the app; extension code never sees them.
+2. An `x.` type a registered, enabled extension handles goes to it.
+3. Any other `x.` type that carries an `id` is answered with
+   `error {msg, t: <type>, code: "unknown-type"}` and `re` = that `id`; without an `id` it is ignored.
+4. An extension message over the size limit is refused the same way with `code: "too-large"`.
+5. An `error` whose `re` matches an open request of an extension goes to that extension, not to the app.
+6. Unknown core types are still ignored and never answered, as every build always did: an older peer may not
+   understand `error` at all, and §5 types change only with this document.
+
+What the apps did before extensions, and still do for core traffic: the Android phone ignores an unknown type (a log
+line), the iPhone ignores it (only `ping` is answered by `TetherLink` itself), the Android client ignores it and shows
+an `error` that answers none of its extensions' requests as a problem.
+
+**Failures stay inside the extension.** An exception thrown by an extension is caught and logged; the session goes
+on, and a request that carried an `id` is answered with `error` `code: "failed"`. After 10 failures in a row an
+extension is switched off for the rest of the process: its types become unknown (rule 3) and its `caps` entries
+disappear from the next `status` / `sync`.
+
+### 7.5 Status fields
+
+The Android phone's extensions may add small status fields: `status.ext` is an object keyed by extension id, each
+value at most 1 024 bytes encoded, sent only to clients that agreed a version of that extension. Clients that do not
+know an id ignore it.
+
+### 7.6 Versions
+
+A major version changes only for an incompatible change (a field removed or its meaning changed, a new required
+field). Adding optional fields or new message types of the extension does not need a new major: receivers ignore what
+they do not know, exactly as for core messages. A side keeps announcing and answering an older major as long as
+installed peers may still use it.
+
+### 7.7 From extension to core
+
+An extension that becomes part of what every Tether build does is promoted:
+
+1. New core type names without the `x.` prefix, added to §5, Kotlin `T`, Swift `MsgType` and `protocol/fixtures/`,
+   like any new message type.
+2. The Android phone keeps answering the `x.` types and keeps them in its `caps` while installed clients may still use
+   them (at least one release); new clients use the core types when the phone's `status` shows it has them
+   (its `caps` or the core fields of the promoted feature).
+3. A retired `x.` name is never reused for something else. Third-party extensions are promoted only with their
+   authors' agreement.
+
+### 7.8 Security and privacy
+
+Extension messages have the same protection as every other message: encrypted and authenticated end to end, only
+between paired devices. An extension is trusted like the app it runs in: it sees only its own messages and can send
+only its own types, but it runs with the app's permissions. Extensions must not carry phone numbers, texts or
+contacts unless that is the feature the user turned on, never log message contents (counts only, as the debug hooks
+do), validate every field they read, and treat a test transport (`dry`) as off-limits for anything real.
+
+### 7.9 Built-in: `x.tether.echo` (version 1)
+
+Link diagnostics, registered on every side (the Android phone, the iPhone, the Android client), both directions:
+
+| Type | Body |
+| --- | --- |
+| `x.tether.echo` with `id` (request) | `{ts, data?}`: the asker's clock (Unix ms) and an optional payload |
+| `x.tether.echo` with `re` (answer) | `{ts, data?, at, via}`: `ts` and `data` copied, `at` the responder's clock, `via` its transport ("l2cap", "gatt", "memory") |
+
+The asker gets the control round trip (`now − ts`) and the clock offset (`at − (ts + rtt / 2)`); a larger `data` measures
+throughput within the size limit. A message with neither `id` nor `re` is ignored. A test message type that no build
+registers, `x.org.example.unknown`, pins rule 3 in the fixtures.

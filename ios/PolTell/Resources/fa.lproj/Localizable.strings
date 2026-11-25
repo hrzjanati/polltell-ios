@@ -29,7 +29,6 @@
 "Message" = "پیام";
 "Message not sent" = "پیام ارسال نشد";
 "Messages" = "پیام‌ها";
-"Method" = "روش";
 "Missed" = "بی‌پاسخ";
 "Mobile" = "موبایل";
 "Name" = "نام";
@@ -227,3 +226,26 @@
 "Check the spelling or try a new search." = "املا را بررسی کنید یا جست‌وجوی دیگری امتحان کنید.";
 "Connected to the Android phone" = "به گوشی اندروید وصل است";
 "Not connected to the Android phone" = "به گوشی اندروید وصل نیست";
+"Inject method" = "روش ارسال صدا";
+"Capture method" = "روش دریافت صدا";
+"Mute the Android phone's microphone" = "بی‌صدا کردن میکروفون گوشی اندروید";
+"Your voice in the call" = "صدای شما در تماس";
+"Reaches the other side" = "به طرف مقابل می‌رسد";
+"Checking…" = "در حال بررسی…";
+"Was muted by the phone; fixed" = "گوشی آن را قطع کرده بود؛ درست شد";
+"Not muted by the phone" = "گوشی آن را قطع نمی‌کند";
+"Not checked" = "بررسی نشده";
+"PolTell may not use this iPhone's microphone, so the other side hears nothing. Allow it in Settings › Privacy & Security › Microphone." = "پل‌تل اجازهٔ استفاده از میکروفون این آیفون را ندارد، برای همین طرف مقابل چیزی نمی‌شنود. در تنظیمات › حریم خصوصی و امنیت › میکروفون اجازه دهید.";
+"Off is safest: on some Android phones muting their microphone also mutes your voice for the other side. When it is on, PolTell checks during each call and turns the mute off if your voice does not get through." = "خاموش امن‌تر است: در بعضی گوشی‌های اندروید بی‌صدا کردن میکروفون، صدای شما را هم برای طرف مقابل قطع می‌کند. وقتی روشن است، پل‌تل در هر تماس بررسی می‌کند و اگر صدای شما نرسد، بی‌صدا کردن را خاموش می‌کند.";
+
+/* Call audio: the Android phone's microphone (issue #2) */
+"Android phone's microphone" = "میکروفون گوشی اندروید";
+"Off during calls" = "خاموش در تماس";
+"Muted" = "بی‌صدا";
+"In this call" = "در این تماس";
+"Microphone out of the call" = "میکروفون بیرون از تماس";
+"Microphone muted" = "میکروفون بی‌صدا";
+"Microphone on" = "میکروفون روشن";
+"Muting works on some phones only: on others it also mutes your voice for the other side. PolTell checks during each call and turns the mute off if your voice does not get through." = "بی‌صدا کردن فقط روی بعضی گوشی‌ها کار می‌کند: روی بقیه صدای شما را هم برای طرف مقابل قطع می‌کند. PolTell در هر تماس بررسی می‌کند و اگر صدای شما نرسد، بی‌صدا کردن را خاموش می‌کند.";
+"The Android phone's microphone stays in the call: the other side may hear your voice twice, and the room around the phone." = "میکروفون گوشی اندروید در تماس می‌ماند: ممکن است طرف مقابل صدای شما را دو بار بشنود، همراه با صدای اطراف آن گوشی.";
+"PolTell puts the call in Android's redirect audio mode: the Android phone's own microphone and earpiece leave the call, so the other side hears only this iPhone. PolTell checks that both directions still work and keeps the microphone on where the phone does not allow it." = "PolTell تماس را به حالت صوتی «هدایت تماس» اندروید می‌برد: میکروفون و بلندگوی مکالمهٔ گوشی اندروید از تماس بیرون می‌روند و طرف مقابل فقط صدای این آیفون را می‌شنود. PolTell بررسی می‌کند که صدا در هر دو جهت برقرار بماند و جایی که گوشی اجازه ندهد، میکروفون را روشن نگه می‌دارد.";

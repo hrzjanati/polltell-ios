@@ -74,7 +74,16 @@ BUNDLE=$(cd "$ROOT/ios" && xcodebuild -project PolTell.xcodeproj -scheme PolTell
   | awk -F' = ' '/ PRODUCT_BUNDLE_IDENTIFIER = / { print $2; exit }')
 left=-999
 [[ -f "$APP/embedded.mobileprovision" ]] && left=$(days_left "$APP/embedded.mobileprovision")
-log "installed build's profile has $left day(s) left"
+# No previous build (its folder was cleaned up): judge by this app's newest saved profile instead of renewing,
+# since renewing needs the Apple account in Xcode and the saved profile usually still has days left.
+if [[ ! -f "$APP/embedded.mobileprovision" ]]; then
+  for p in "$PROFILES"/*.mobileprovision(N); do
+    appid=$(security cms -D -i "$p" 2>/dev/null | plutil -extract Entitlements.application-identifier raw - 2>/dev/null)
+    [[ -n "$BUNDLE" && "$appid" == *".$BUNDLE" ]] || continue
+    d=$(days_left "$p"); (( d > left )) && left=$d
+  done
+fi
+log "this app's signing profile has $left day(s) left"
 moved=()
 if (( force || left < RENEW_WHEN_DAYS_LEFT )); then
   mkdir -p "$PROFILES/old"
@@ -110,8 +119,20 @@ if ! build comm; then
   if ! build plain; then
     print -r -- "$out" | grep -E "error:|403|Unable to log in" | head -8 >> "$LOG"
     restore_profiles
-    network_refused && fail "Apple's signing service could not be reached or refused the request (network or account)."
-    fail "Build failed. See ~/Library/Logs/tether-reinstall.log"
+    # Renewal needs the Apple account in Xcode › Settings › Accounts. Without it, sign with the profile still on disk
+    # while it lasts, and say when it runs out.
+    if (( ${#moved} )) && (( left > 0 )) && [[ "$out" == *"No Accounts"* || "$out" == *"No profiles for"* ]]; then
+      log "could not renew the profile (no Apple account in Xcode): signing with the current one, $left day(s) left"
+      renew_warning="Sign in to Xcode (Settings › Accounts) before the profile runs out in $left day(s)."
+      moved=()
+      if ! build plain; then
+        print -r -- "$out" | grep -E "error:|403|Unable to log in" | head -8 >> "$LOG"
+        fail "Build failed. See ~/Library/Logs/tether-reinstall.log"
+      fi
+    else
+      network_refused && fail "Apple's signing service could not be reached or refused the request (network or account)."
+      fail "Build failed. See ~/Library/Logs/tether-reinstall.log"
+    fi
   fi
 fi
 rm -rf "$PROFILES/old"
@@ -128,6 +149,7 @@ if [[ "$variant" == comm ]]; then
 else
   summary="Installed without sender pictures in notifications or the default calling app (both need a paid Apple developer account). Valid $left day(s)."
 fi
+[[ -n "${renew_warning:-}" ]] && summary="$summary $renew_warning"
 log "OK: $summary"
 print -r -- "$summary"
 notify "Reinstalled" "$summary"

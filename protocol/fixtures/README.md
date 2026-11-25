@@ -25,6 +25,21 @@ the other cannot read fails a test instead of a call:
 
 Numbers are `+1000000000x`, names made up.
 
+## Extension fixtures
+
+Files whose `t` starts with `x.` are extension messages ([PROTOCOL.md](../PROTOCOL.md) §7), not core types: they are
+kept out of the `T` / `MsgType` / §5 parity and checked on their own. Both contract tests route them through their
+side's extension registry:
+
+- `x.tether.echo.json`: the built-in echo; every `request` variant is answered exactly like the `reply` variants.
+- `x.org.example.unknown.json`: a type no build registers. A request with an `id` is refused with the body of
+  `error.json`'s `extension` variant; without an `id` it is ignored.
+- The `caps` and `ext` fields of `sync` and `status` are in their own fixtures (`full`, `android`, `unknown`); the
+  `old` variants have none, as every app before extensions sent.
+
+An extension of your own can keep its fixtures next to its code; add them here only for extensions shipped in this
+repository (`x.tether.*`).
+
 ## Rules
 
 - Change a body: update its fixture and PROTOCOL.md in the same commit.

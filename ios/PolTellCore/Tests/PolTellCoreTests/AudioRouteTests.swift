@@ -1,5 +1,5 @@
 import XCTest
-@testable import PolTellCore
+@_spi(PolTellApp) @testable import PolTellCore
 
 final class AudioRouteTests: XCTestCase {
     let mic = RoutePort(type: "MicrophoneBuiltIn", uid: "Built-In Microphone", name: "iPhone Microphone")

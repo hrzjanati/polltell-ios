@@ -17,7 +17,11 @@ enum ContractFixtures {
         var sentByIPhone: Bool { dir != "phone-to-client" }
     }
 
-    static func all() throws -> [String: Fixture] {
+    /// Core types (§5). Extension fixtures (`x.…`, §7) are in `extensions()`.
+    static func all() throws -> [String: Fixture] { try every().filter { !$0.key.hasPrefix("x.") } }
+    static func extensions() throws -> [String: Fixture] { try every().filter { $0.key.hasPrefix("x.") } }
+
+    static func every() throws -> [String: Fixture] {
         let dir = repo.appendingPathComponent("protocol/fixtures")
         var out: [String: Fixture] = [:]
         for f in try FileManager.default.contentsOfDirectory(atPath: dir.path) where f.hasSuffix(".json") {

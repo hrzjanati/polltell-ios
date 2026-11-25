@@ -81,3 +81,18 @@ arrival jitter ~15 ms, uplink ~10 ms. The iPhone's clock against the Android pho
 | Playout delay (mean buffer level) | not measured | 44-46 ms |
 | Concealed / underruns | 0 / 0 (Link log) | 0.3-1.1 % / 0-1 |
 | Drained in quiet frames per call | 275-295 ms | 340-470 ms (start-up burst, gaps' leftovers) |
+
+## Redirect audio modes (2026-11-23, issue #2)
+
+Asked for by the helper as the shell user (`HelperMain mode <n>`, and during test-line calls); no real call was
+placed, so what the Samsung audio HAL does with a live PSTN call in these modes is still open (the self-test's
+`mic:call_redirect` row during a real call answers it).
+
+| Check | Result |
+| --- | --- |
+| `isCallScreeningModeSupported()` | true |
+| `setMode(MODE_CALL_REDIRECT)` / `MODE_CALL_SCREENING` / `MODE_COMMUNICATION_REDIRECT` from the shell, no call | accepted in 4-6 ms (the shell's request owns the mode), released to `MODE_NORMAL` |
+| Same during a test-line call (Telecom's `MODE_IN_COMMUNICATION`) | `COMMUNICATION_REDIRECT` accepted; Telecom did not take it back during the call; the helper's running interception record and track kept going (251/251 frames both ways); withdrawn at the call's end, mode back to Telecom's |
+| Interception API opened inside `MODE_CALL_REDIRECT` with no call | record and track open (track routed to Telephony, type 18); on a second try opening the record there blocked, so the helper opens both in the call's own mode first and only then switches |
+| `getMode()` in a process whose context targets Android 10 or lower | reports `CALL_SCREENING` as `IN_CALL` (AudioManager compatibility): the helper's context reports the current SDK |
+| Self-test on the test line | `mic:communication_redirect` accepted, "unverified" (VoIP path: `VOICE_UPLINK` shows neither the mic nor the tone, the test line's downlink is silent) |

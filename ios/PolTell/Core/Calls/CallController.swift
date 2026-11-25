@@ -1,7 +1,7 @@
 import AVFoundation
 import CallKit
 import Foundation
-import PolTellCore
+@_spi(PolTellApp) import PolTellCore
 import UIKit
 
 /// Maps the Android phone's calls onto CallKit (native incoming screen, lock screen too) and drives the in-app

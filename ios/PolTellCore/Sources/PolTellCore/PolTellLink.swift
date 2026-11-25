@@ -1,7 +1,8 @@
+// The CoreBluetooth central exists on Apple platforms only; everything else in PolTellCore builds everywhere.
+#if canImport(CoreBluetooth)
 import CoreBluetooth
 import CryptoKit
 import Foundation
-import os
 
 public enum PolTellUUID {
     public static let service = CBUUID(string: "5ABF5C3C-2BF1-4B1C-9E8E-5D153F835BD5")
@@ -66,7 +67,10 @@ public final class PolTellLink: NSObject {
     /// Measures the round trip now (call start), without waiting for the 25 s keep-alive.
     public func measureRoundTrip() { queue.async { if self.session != nil { self.sendNow(MsgType.ping, PingBody(ts: Int64(Date().timeIntervalSince1970 * 1000))) } } }
 
-    /// - Parameter restoreID: CoreBluetooth state-restoration identifier (iOS background relaunch).
+    /// - Parameters:
+    ///   - store: Where the link keeps its identity and the paired phone.
+    ///   - restoreID: CoreBluetooth state-restoration identifier (iOS background relaunch).
+    ///   - queue: The queue all link work and every delegate call runs on.
     public init(store: IdentityStore, restoreID: String? = nil, queue: DispatchQueue = DispatchQueue(label: "tether.link")) {
         self.store = store
         self.queue = queue
@@ -109,11 +113,12 @@ public final class PolTellLink: NSObject {
         }
     }
 
-    /// Sends a control message; returns the request id (use it to match `re` in replies).
+    /// Sends a control message; returns the request id (use it to match `re` in replies). `re`: this answers the
+    /// Android phone's request with that id (extensions, protocol §7).
     @discardableResult
-    public func send<B: Encodable>(_ type: String, _ body: B, expectReply: Bool = false) -> Int {
+    public func send<B: Encodable>(_ type: String, _ body: B, expectReply: Bool = false, re: Int? = nil) -> Int {
         let id = ids.next()
-        queue.async { self.sendNow(type, body, id: expectReply ? id : nil) }
+        queue.async { self.sendNow(type, body, id: expectReply ? id : nil, re: re) }
         return id
     }
 
@@ -658,20 +663,4 @@ extension PolTellLink: StreamDelegate {
     }
 }
 
-/// A counter shared across threads under an unfair lock held for one increment.
-final class RequestIds: @unchecked Sendable {
-    private var lock = os_unfair_lock()
-    private var last = 1
-    func next() -> Int { os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }; last += 1; return last }
-}
-
-/// When to try the link again after a failure (pure, for tests): the failures of the last minute decide. Up to three
-/// reconnect at once (a pending connect, plus a scan after 1 s); more back off 2 s per failure, at most 30 s.
-enum ReconnectPolicy {
-    enum Action: Equatable { case atOnce, backOff(Double) }
-    static let window: TimeInterval = 60
-    static func next(failures: [Date], now: Date) -> (failures: [Date], action: Action) {
-        let recent = failures.filter { now.timeIntervalSince($0) < window } + [now]
-        return (recent, recent.count <= 3 ? .atOnce : .backOff(Double(min(30, 2 * recent.count))))
-    }
-}
+#endif

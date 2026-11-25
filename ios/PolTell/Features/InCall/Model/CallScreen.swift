@@ -1,7 +1,7 @@
 import AVFoundation
 import CallKit
 import Foundation
-import PolTellCore
+@_spi(PolTellApp) import PolTellCore
 import UIKit
 
 /// What the in-app call screen shows.

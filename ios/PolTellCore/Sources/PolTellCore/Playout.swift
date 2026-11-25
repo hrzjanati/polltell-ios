@@ -1,10 +1,9 @@
 import Foundation
-import os
 
 /// Fixed-size sample ring shared with a real-time audio thread: no allocation and a very short
 /// critical section under an unfair lock on that thread.
 public final class SampleRing: @unchecked Sendable {
-    private var lock = os_unfair_lock()
+    private let lock = UnfairLock()
     private let buf: UnsafeMutablePointer<Float>
     private let cap: Int
     private var r = 0, w = 0, count = 0
@@ -16,11 +15,11 @@ public final class SampleRing: @unchecked Sendable {
     }
     deinit { buf.deallocate() }
 
-    public var available: Int { os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }; return count }
+    public var available: Int { lock.lock(); defer { lock.unlock() }; return count }
 
     /// Overwrites the oldest samples when full.
     public func write(_ src: UnsafePointer<Float>, _ n: Int, stride: Int = 1) {
-        os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }
+        lock.lock(); defer { lock.unlock() }
         for i in 0..<n {
             buf[w] = src[i * stride]
             w = (w + 1) % cap
@@ -30,7 +29,7 @@ public final class SampleRing: @unchecked Sendable {
 
     @discardableResult
     public func read(into dst: UnsafeMutablePointer<Float>, _ n: Int) -> Int {
-        os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }
+        lock.lock(); defer { lock.unlock() }
         let k = min(n, count)
         for i in 0..<k { dst[i] = buf[r]; r = (r + 1) % cap }
         count -= k
@@ -38,11 +37,11 @@ public final class SampleRing: @unchecked Sendable {
     }
 
     public func skip(_ n: Int) {
-        os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }
+        lock.lock(); defer { lock.unlock() }
         let k = min(n, count); r = (r + k) % cap; count -= k
     }
 
-    public func clear() { os_unfair_lock_lock(&lock); r = 0; w = 0; count = 0; os_unfair_lock_unlock(&lock) }
+    public func clear() { lock.lock(); r = 0; w = 0; count = 0; lock.unlock() }
 }
 
 /// Playout buffer for decoded far-end audio.
@@ -56,7 +55,7 @@ public final class SampleRing: @unchecked Sendable {
 ///   The spread is measured around the far clock's own rate (a drift line), so drift does not widen it.
 public final class PlayoutBuffer: @unchecked Sendable {
     private let ring: SampleRing
-    private var lock = os_unfair_lock()
+    private let lock = UnfairLock()
     public private(set) var target: Int
     public let minTarget: Int, maxTarget: Int
     private let rate: Int
@@ -70,7 +69,7 @@ public final class PlayoutBuffer: @unchecked Sendable {
     // Actual playout delay: the level at every pull once primed (render thread).
     private var levelSum = 0.0, levelPulls = 0
     /// Mean samples queued when the render thread took audio: the playout delay the listener had (beyond the output's own).
-    public var meanBuffered: Double { os_unfair_lock_lock(&lock); defer { os_unfair_lock_unlock(&lock) }; return levelPulls > 0 ? levelSum / Double(levelPulls) : 0 }
+    public var meanBuffered: Double { lock.lock(); defer { lock.unlock() }; return levelPulls > 0 ? levelSum / Double(levelPulls) : 0 }
     /// The far clock against ours from the arrival line (parts per million; > 0: frames come faster than real time).
     public private(set) var driftPpm = 0.0
     /// Mean square of the quietest recent frames: what "quiet" is measured against (audio queue).
@@ -121,9 +120,9 @@ public final class PlayoutBuffer: @unchecked Sendable {
         let energy = f.reduce(Float(0)) { $0 + $1 * $1 } / Float(max(1, f.count))
         noiseFloor = energy < noiseFloor ? max(energy, 1e-10) : noiseFloor * 1.01   // falls at once, rises ~2 dB/s
         let quiet = energy < 1e-3 && (energy < 1e-5 || energy < noiseFloor * 6)
-        os_unfair_lock_lock(&lock)
+        lock.lock()
         let tgt = target, isPrimed = primed
-        os_unfair_lock_unlock(&lock)
+        lock.unlock()
         // Steering in quiet frames only (never queued speech): above target + 10 ms the frame is written short. Below
         // target - 10 ms, while the far clock runs measurably slow, it is written longer by repeating its start (else the
         // buffer would run dry every few seconds; without drift a gap refills it by itself, and filling up to a target
@@ -138,19 +137,19 @@ public final class PlayoutBuffer: @unchecked Sendable {
         var live = before + n + add
         var skip = f.count - n
         if live > tgt + maxTarget { ring.skip(live - tgt); skip += live - tgt; live = tgt }   // a huge burst: cut now
-        os_unfair_lock_lock(&lock)
+        lock.lock()
         if !primed && live >= tgt { primed = true }
         trimmed += skip
         inserted += add
-        os_unfair_lock_unlock(&lock)
+        lock.unlock()
     }
 
     /// Real-time thread: fills `out`, returns how many samples were real audio.
     @discardableResult
     public func pull(into out: UnsafeMutablePointer<Float>, count: Int) -> Int {
-        os_unfair_lock_lock(&lock)
+        lock.lock()
         let isPrimed = primed, tgt = target
-        os_unfair_lock_unlock(&lock)
+        lock.unlock()
         guard isPrimed else { for i in 0..<count { out[i] = 0 }; return 0 }
         let level = ring.available
         // After a gap keep concealing until half the target is back: frames lost (not late) would otherwise leave
@@ -164,12 +163,12 @@ public final class PlayoutBuffer: @unchecked Sendable {
             }
             concealRun = 0
             remember(out, count)
-            os_unfair_lock_lock(&lock)
+            lock.lock()
             levelSum += Double(level); levelPulls += 1
             cleanPulls += 1
             // ~3 s clean: shrink, but not below what the arrival statistics ask for.
             if cleanPulls > 300 && target > max(minTarget, jitterFloor) { target = max(jitterFloor, target - minTarget / 6); cleanPulls = 0 }
-            os_unfair_lock_unlock(&lock)
+            lock.unlock()
             return n
         }
         // Shortfall: continue the last 10 ms, fading out over ~60 ms, instead of a hard gap.
@@ -177,9 +176,9 @@ public final class PlayoutBuffer: @unchecked Sendable {
         // against a 40 ms target were concealed every few seconds on a real iPhone, 2026-11-22), and only a full
         // 100 ms dropout used to grow the target. It shrinks again after ~3 s without a gap.
         if concealRun == 0 {
-            os_unfair_lock_lock(&lock)
+            lock.lock()
             target = min(maxTarget, target + rate / 200)
-            os_unfair_lock_unlock(&lock)
+            lock.unlock()
         }
         let fadeLen = Float(rate) * 0.06
         for i in n..<count {
@@ -187,7 +186,7 @@ public final class PlayoutBuffer: @unchecked Sendable {
             out[i] = last[(concealRun) % lastLen] * g
             concealRun += 1
         }
-        os_unfair_lock_lock(&lock)
+        lock.lock()
         levelSum += Double(level); levelPulls += 1
         concealedSamples += count - n
         cleanPulls = 0
@@ -198,7 +197,7 @@ public final class PlayoutBuffer: @unchecked Sendable {
             target = min(maxTarget, target + minTarget / 3)
             concealRun = 0
         }
-        os_unfair_lock_unlock(&lock)
+        lock.unlock()
         return n
     }
 
@@ -230,10 +229,10 @@ public final class PlayoutBuffer: @unchecked Sendable {
         let (spread, slope) = Self.spread(times: times, delays: delays, count: delayCount, hi: hiPercentile)
         driftPpm = -slope * 1e6
         let floor = min(maxTarget, max(minTarget, Int((spread + Self.marginMs) * Double(rate) / 1000)))
-        os_unfair_lock_lock(&lock)
+        lock.lock()
         jitterFloor = floor
         if target < floor { target = floor }
-        os_unfair_lock_unlock(&lock)
+        lock.unlock()
     }
 
     /// Percentile spread of `delays` around their drift line against `times` (ms), and the line's slope. The slope comes
@@ -286,5 +285,5 @@ public final class PlayoutBuffer: @unchecked Sendable {
     /** Samples queued right now (the playout delay beyond the output's own). */
     public var buffered: Int { ring.available }
 
-    public func reset() { ring.clear(); os_unfair_lock_lock(&lock); primed = false; concealRun = 0; os_unfair_lock_unlock(&lock); firstArrival = 0 }
+    public func reset() { ring.clear(); lock.lock(); primed = false; concealRun = 0; lock.unlock(); firstArrival = 0 }
 }

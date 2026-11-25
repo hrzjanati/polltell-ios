@@ -24,7 +24,7 @@ final class ContractTests: XCTestCase {
         "call.answer": c(CallRef.self), "call.reject": c(CallRef.self), "call.end": c(CallRef.self), "call.take": c(CallRef.self),
         "call.hold": c(CallHold.self), "call.mute": c(CallMute.self), "call.dtmf": c(CallDtmf.self),
         "call.dial": c(CallDial.self), "call.dialed": c(OkResult.self),
-        "audio.start": c(AudioStart.self), "audio.stop": c(Empty.self), "audio.stats": c(AudioStats.self),
+        "audio.start": c(AudioStart.self), "audio.stop": c(Empty.self), "audio.stats": c(AudioStats.self), "audio.set": c(AudioSet.self),
         "selftest": c(Empty.self), "selftest.result": c(SelftestResult.self),
         "net.get": c(Empty.self), "net.set": c(NetSet.self), "net.state": c(NetState.self),
         "sms.delete": c(SmsDelete.self), "sms.deleted": c(SmsDeleted.self),
@@ -90,7 +90,13 @@ final class ContractTests: XCTestCase {
         switch v {
         case let d as NSDictionary: return "{" + (d.allKeys as! [String]).sorted().map { "\($0):\(shape(d[$0]!))" }.joined(separator: ",") + "}"
         case let a as NSArray: return "[" + a.map { shape($0) }.joined(separator: ",") + "]"
+        #if canImport(Darwin)
         case let n as NSNumber: return CFGetTypeID(n) == CFBooleanGetTypeID() ? "bool" : "num"
+        #else
+        // swift-corelibs-foundation gives JSON booleans as Bool and numbers as NSNumber.
+        case let b where type(of: b) == Bool.self: return "bool"
+        case is NSNumber: return "num"
+        #endif
         case is String: return "str"
         default: return "?"
         }
@@ -106,13 +112,19 @@ final class ContractTests: XCTestCase {
     func testStatusOptionalFields() throws {
         let s = try body("status", "full", as: StatusBody.self)
         XCTAssertEqual(s.sims[0].country, "us"); XCTAssertEqual(s.sims[1].net, "5G"); XCTAssertEqual(s.sims[1].service, "none")
-        XCTAssertEqual(s.helper.silent, "full"); XCTAssertEqual(s.tools?.ussd, true); XCTAssertEqual(s.tools?.ringer, true)
+        XCTAssertEqual(s.helper.silent, "earpiece"); XCTAssertEqual(s.tools?.ussd, true)
+        XCTAssertEqual(s.helper.mic, "auto"); XCTAssertEqual(s.helper.micPath, "off");
+        XCTAssertEqual(s.helper.micMute, false); XCTAssertEqual(s.helper.uplink, "ok"); XCTAssertEqual(s.helper.capture, "intercept"); XCTAssertEqual(s.tools?.ringer, true)
         XCTAssertEqual(s.ringer, "vibrate"); XCTAssertEqual(s.dnd, false)
         XCTAssertEqual(s.clients?.map(\.kind), ["iphone", "android"]); XCTAssertTrue(s.clients![0].isSelf)
         let o = try body("status", "old", as: StatusBody.self)
+        XCTAssertNil(o.helper.mic, "an Android phone before the mic setting: the old switch"); XCTAssertNil(o.helper.micPath)
         XCTAssertNil(o.sims[0].country); XCTAssertNil(o.sims[0].net); XCTAssertTrue(o.sims[0].hasService)
+        XCTAssertNil(o.helper.micMute, "an Android phone without the mic setting: no switch"); XCTAssertNil(o.helper.uplink); XCTAssertNil(o.helper.capture)
         XCTAssertNil(o.helper.silent); XCTAssertNil(o.tools); XCTAssertNil(o.ringer); XCTAssertNil(o.dnd); XCTAssertNil(o.clients)
         XCTAssertNil(o.defaultSub)
+        XCTAssertEqual(s.caps?.first, "x.tether.echo/1"); XCTAssertEqual(s.ext?["x.com.example.battery"]?["at"]?.number, 15)
+        XCTAssertNil(o.caps, "an Android phone from before extensions"); XCTAssertNil(o.ext)
         // An A54 newer than this iPhone may add fields: they are ignored, not fatal.
         XCTAssertEqual(try body("status", "unknown", as: StatusBody.self), s)
     }
@@ -134,6 +146,10 @@ final class ContractTests: XCTestCase {
         XCTAssertEqual(try body("phone.finding", "full", as: PhoneFinding.self).err, "no alarm stream")
         XCTAssertEqual(try body("ringer.result", "old", as: RingerResult.self).mode, "vibrate")
         XCTAssertNil(try body("ringer.result", "old", as: RingerResult.self).err)
+        XCTAssertEqual(try body("audio.set", "off", as: AudioSet.self).micMute, false)
+        XCTAssertEqual(try body("audio.set", "mic", as: AudioSet.self).mic, "auto"); XCTAssertNil(try body("audio.set", "mic", as: AudioSet.self).micMute)
+        let st = try body("selftest.result", "full", as: SelftestResult.self)
+        XCTAssertEqual(st.methods.first?.name, "call-audio"); XCTAssertEqual(st.methods.last?.ok, false)
     }
 
     func testDataOptionalFields() throws {
@@ -154,5 +170,79 @@ final class ContractTests: XCTestCase {
         let o = try body("net.state", "old", as: NetState.self)
         XCTAssertNil(o.can); XCTAssertNil(o.rat); XCTAssertNil(o.proxy); XCTAssertNil(o.airplane)
         XCTAssertEqual(try body("net.state", "error", as: NetState.self).err, "helper did not answer")
+    }
+
+    // MARK: extensions (§7)
+
+    private final class Port: ExtensionPort {
+        var transport = "l2cap", inCall = false
+        var sent: [Data] = []
+        func send(_ type: String, _ body: any Encodable, expectReply: Bool, re: Int?) -> Int? {
+            sent.append(try! Control.encode(type, body, id: expectReply ? 99 : nil, re: re)); return expectReply ? 99 : 0
+        }
+        func lastBody() throws -> NSDictionary {
+            (try JSONSerialization.jsonObject(with: sent.last!) as! NSDictionary)["b"] as! NSDictionary
+        }
+    }
+
+    func testExtensionFixturesAreNamedInSection7AndNotInSection5() throws {
+        let ext = try ContractFixtures.extensions()
+        XCTAssertNotNil(ext["x.tether.echo"]); XCTAssertNotNil(ext["x.org.example.unknown"])
+        let sec7 = try ContractFixtures.text("protocol/PROTOCOL.md").components(separatedBy: "## 7. Extensions")[1]
+        for t in ext.keys {
+            XCTAssertTrue(ExtensionRegistry.validId(t), t)
+            XCTAssertTrue(sec7.contains("`\(t)`"), "\(t) is not named in §7")
+        }
+        XCTAssertTrue(try ContractFixtures.protocolTypes().allSatisfy { !$0.hasPrefix("x.") })
+    }
+
+    func testEchoAnswersEveryRequestFixtureLikeTheReplyFixture() throws {
+        let f = try XCTUnwrap(try ContractFixtures.extensions()["x.tether.echo"])
+        let reply = try JSONSerialization.jsonObject(with: try XCTUnwrap(f.variants["reply"])) as! NSDictionary
+        let at = (reply["at"] as! NSNumber).int64Value
+        for (name, body) in f.variants where !name.hasPrefix("reply") {
+            let reg = ExtensionRegistry(), port = Port()
+            try reg.register(EchoExtension(clock: { at })); reg.start(); reg.linkUp(port)
+            let env = ContractFixtures.envelope("x.tether.echo", body)
+            XCTAssertTrue(reg.route(try Control.header(env), env))
+            let out = try port.lastBody()
+            let want = reply.mutableCopy() as! NSMutableDictionary   // portable: Linux has no NSDictionary-to-Swift bridging
+            if (try JSONSerialization.jsonObject(with: body) as! NSDictionary)["data"] == nil { want.removeObject(forKey: "data") }
+            XCTAssertEqual(out, want, "echo/\(name)")
+            XCTAssertEqual(Self.shape(out), Self.shape(want))
+            XCTAssertEqual(try Control.header(port.sent.last!).re, 5)
+        }
+        for (name, body) in f.variants where name.hasPrefix("reply") {
+            XCTAssertNoThrow(try JSONDecoder().decode(EchoExtension.Reply.self, from: body), name)
+        }
+    }
+
+    func testUnknownExtensionIsRefusedWithTheErrorFixture() throws {
+        let f = try XCTUnwrap(try ContractFixtures.extensions()["x.org.example.unknown"])
+        let reg = ExtensionRegistry(), port = Port()
+        try reg.register(EchoExtension()); reg.start(); reg.linkUp(port)
+        let env = ContractFixtures.envelope(f.t, try XCTUnwrap(f.variants["request"]))
+        XCTAssertTrue(reg.route(try Control.header(env), env))
+        let want = try JSONSerialization.jsonObject(with: try XCTUnwrap(try ContractFixtures.all()["error"]?.variants["extension"])) as! NSDictionary
+        XCTAssertEqual(try port.lastBody(), want)
+        XCTAssertEqual(try Control.header(port.sent.last!).t, MsgType.error)
+        let noId = Data("{\"t\":\"\(f.t)\",\"b\":{}}".utf8)
+        XCTAssertTrue(reg.route(try Control.header(noId), noId))
+        XCTAssertEqual(port.sent.count, 1, "without an id: ignored")
+    }
+
+    func testCapsInSyncAndStatusFixturesAgreeEcho() throws {
+        struct Caps: Decodable { var caps: [String]? }
+        let echo = EchoExtension()
+        let reg = ExtensionRegistry(); try reg.register(echo); reg.linkUp(Port())
+        for (t, v) in [("sync", "full"), ("sync", "android"), ("status", "full"), ("status", "unknown")] {
+            reg.peerCaps(try body(t, v, as: Caps.self).caps)
+            XCTAssertEqual(reg.version(of: echo), 1, "\(t)/\(v)")
+        }
+        for t in ["sync", "status"] {
+            reg.peerCaps(try body(t, "old", as: Caps.self).caps)
+            XCTAssertNil(reg.version(of: echo), "\(t)/old")
+        }
+        XCTAssertEqual(reg.caps, ["x.tether.echo/1"])
     }
 }

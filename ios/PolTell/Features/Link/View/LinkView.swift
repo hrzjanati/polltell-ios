@@ -44,10 +44,32 @@ struct LinkView: View {
                     }
                     FoldSection(title: "Call audio") {
                         LabeledContent("Audio helper", value: s.helper.state == "running" ? String(localized: "Running") : String(localized: "Stopped"))
-                        if let m = s.helper.method { LabeledContent("Method", value: m) }
+                        if let m = s.helper.method { LabeledContent("Inject method", value: m) }
+                        if let m = s.helper.capture { LabeledContent("Capture method", value: m) }
                         if let q = s.helper.silent {
                             LabeledContent("Android phone silent", value: q == "full" ? String(localized: "Yes") :
                                 q == "earpiece" ? String(localized: "Earpiece only") : String(localized: "No"))
+                        }
+                        if let mic = s.helper.mic {
+                            Picker("Android phone's microphone", selection: Binding(get: { CallAudioRows.micChoice(mic) }, set: { vm.setPhoneMic($0) })) {
+                                Text("Off during calls").tag("auto")
+                                Text("Muted").tag("mute")
+                                Text("On").tag("open")
+                            }
+                            .disabled(!vm.isConnected)
+                            if let p = s.helper.micPath {
+                                LabeledContent("In this call", value: CallAudioRows.micPathText(p))
+                            }
+                        } else if CallAudioRows.showsMicToggle(s), let on = s.helper.micMute {
+                            Toggle("Mute the Android phone's microphone", isOn: Binding(get: { on }, set: { vm.setPhoneMicMute($0) }))
+                                .tint(.green).disabled(!vm.isConnected)
+                        }
+                        if let u = s.helper.uplink {
+                            LabeledContent("Your voice in the call", value: CallAudioRows.uplinkText(u))
+                        }
+                        if CallAudioRows.microphoneDenied() {
+                            Text("PolTell may not use this iPhone's microphone, so the other side hears nothing. Allow it in Settings › Privacy & Security › Microphone.")
+                                .font(.footnote).foregroundStyle(.red)
                         }
                         if let a = vm.audioStats {
                             LabeledContent("Last call") {
@@ -63,10 +85,16 @@ struct LinkView: View {
                                     Image(systemName: m.ok ? "checkmark.circle.fill" : "xmark.circle").foregroundStyle(m.ok ? .green : .secondary)
                                     VStack(alignment: .leading) {
                                         Text(m.name).font(.subheadline)
-                                        if let n = m.note { Text(n).font(.caption).foregroundStyle(.secondary) }
+                                        if let n = m.note { Text(n).font(.caption).foregroundStyle(.secondary).textSelection(.enabled) }
                                     }
                                 }
                             }
+                        }
+                        if let mic = s.helper.mic {
+                            Text(CallAudioRows.micFooter(mic)).font(.footnote).foregroundStyle(.secondary)
+                        } else if CallAudioRows.showsMicToggle(s) {
+                            Text("Off is safest: on some Android phones muting their microphone also mutes your voice for the other side. When it is on, PolTell checks during each call and turns the mute off if your voice does not get through.")
+                                .font(.footnote).foregroundStyle(.secondary)
                         }
                     }
                 }
@@ -97,6 +125,9 @@ struct LinkView: View {
                         Button("Unpair", role: .destructive) { vm.confirmUnpair = true }
                     }
                 }
+                #if DEBUG
+                DeveloperSection()
+                #endif
             }
             #if DEBUG
             // -PolTellDemoVPN: start scrolled to the VPN section (screenshots).

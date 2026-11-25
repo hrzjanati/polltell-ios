@@ -2,7 +2,7 @@ import Foundation
 
 /// Rich reading of an SMS body, the way Messages treats text: links, e-mail addresses, phone numbers,
 /// postal addresses and one-time codes become tappable, and light WhatsApp-style formatting
-/// (`*bold*`, `_italic_`, `~strike~`, `` `code` ``) is applied where a sender clearly used it.
+/// (`*bold*`, `_italic_`, `~strike~`, and backticks for code) is applied where a sender clearly used it.
 ///
 /// Everything is computed on the original string; `text` is the body with formatting markers removed and
 /// all ranges (UTF-16, `NSRange`) refer to `text`. Parsing is pure and cheap enough to cache per message.
@@ -113,8 +113,10 @@ public enum MessageText {
 
     // MARK: - Entities
 
+    #if canImport(Darwin)
     private static let detector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue |
         NSTextCheckingResult.CheckingType.phoneNumber.rawValue | NSTextCheckingResult.CheckingType.address.rawValue)
+    #endif
 
     static func detectEntities(_ raw: String) -> [ParsedMessage.Entity] {
         // Persian / Arabic-Indic digits → ASCII (same UTF-16 length, so ranges carry over).
@@ -122,6 +124,7 @@ public enum MessageText {
         let ns = norm as NSString
         var found: [ParsedMessage.Entity] = []
         if let otp = OTPExtractor.find(raw) { found.append(.init(range: otp.range, kind: .code(otp.code))) }
+        #if canImport(Darwin)
         for r in detector.matches(in: norm, range: NSRange(location: 0, length: ns.length)) {
             switch r.resultType {
             case .link:
@@ -140,6 +143,9 @@ public enum MessageText {
                 break
             }
         }
+        #else
+        found += portableEntities(norm)
+        #endif
         // Iranian numbers the detector misses (no separators, Persian digits): 09xxxxxxxxx, +98 / 0098, 0xx-xxxxxxxx.
         for m in iranPhone.matches(in: norm, range: NSRange(location: 0, length: ns.length)) {
             if let dial = dialable(ns.substring(with: m.range)) { found.append(.init(range: m.range, kind: .phone(dial))) }
@@ -154,6 +160,42 @@ public enum MessageText {
             out.append(e)
         }
         return out.sorted { $0.range.location < $1.range.location }
+    }
+
+    // NSDataDetector exists on Apple platforms only. Elsewhere links (with a scheme, "www." or a common domain
+    // ending), e-mail addresses and phone numbers are found with regular expressions; postal addresses are not
+    // detected. Compiled everywhere so its tests run on every platform; Apple platforms do not use it.
+    private static let portableLink = try! NSRegularExpression(pattern:
+        "(?i)\\b(?:https?://|www\\.)[^\\s<>\"]+|(?<![@\\w.-])(?:[a-z0-9-]+\\.)+(?:" + commonTLDs +
+        ")\\b(?![@.\\w-]*@)(?:/[^\\s<>\"]*)?")
+    /// Bare domains ("example.com/pay") count as links only with one of these endings.
+    private static let commonTLDs = "com|org|net|edu|gov|io|ir|co|me|app|dev|info|biz|us|uk|de|fr|ru|in|tv|ai|xyz"
+    private static let portableEmail = try! NSRegularExpression(pattern:
+        "(?i)(?<![\\w.+-])[a-z0-9._%+-]+@[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.[a-z]{2,}(?![\\w-])")
+    private static let portablePhone = try! NSRegularExpression(pattern:
+        "(?<![\\w+*/.])(?:\\+|\\()?\\d[\\d\\s().-]{5,}\\d(?![\\w*/])")
+
+    static func portableEntities(_ norm: String) -> [ParsedMessage.Entity] {
+        let ns = NSString(string: norm)
+        let all = NSRange(location: 0, length: ns.length)
+        var out: [ParsedMessage.Entity] = []
+        for m in portableLink.matches(in: norm, range: all) {
+            // Trailing punctuation ends a sentence, not the link.
+            var r = m.range
+            while r.length > 0, let last = ns.substring(with: NSRange(location: NSMaxRange(r) - 1, length: 1)).unicodeScalars.first,
+                  ".,;:!?)]}'\"".unicodeScalars.contains(last) { r.length -= 1 }
+            let s = ns.substring(with: r)
+            let full = s.lowercased().hasPrefix("http://") || s.lowercased().hasPrefix("https://") ? s : "http://" + s
+            if let url = URL(string: full), url.host != nil { out.append(.init(range: r, kind: .link(url))) }
+        }
+        for m in portableEmail.matches(in: norm, range: all) {
+            out.append(.init(range: m.range, kind: .email(ns.substring(with: m.range))))
+        }
+        for m in portablePhone.matches(in: norm, range: all) {
+            let r = m.range
+            if let dial = dialable(ns.substring(with: r)) { out.append(.init(range: r, kind: .phone(dial))) }
+        }
+        return out
     }
 
     private static let iranPhone = try! NSRegularExpression(

@@ -1,7 +1,7 @@
 import AVFoundation
 import Foundation
 import os
-import PolTellCore
+@_spi(PolTellApp) import PolTellCore
 
 /// 20 ms mono voice codec.
 protocol VoiceCoder: AnyObject {

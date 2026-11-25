@@ -1,8 +1,11 @@
 import Foundation
 
+// The iPhone app's audio-route policy. It is SPI (`@_spi(PolTellApp) import PolTellCore`), not part of the SDK's
+// stable API: it may change in any release.
+
 /// Call-audio routes, decided without AVFoundation so the rules can be tested: the app maps
 /// `AVAudioSession.Port` raw values and port UIDs onto these and applies the resulting plan.
-public enum RouteKind: String, Sendable, Equatable, CaseIterable {
+@_spi(PolTellApp) public enum RouteKind: String, Sendable, Equatable, CaseIterable {
     case receiver, speaker, bluetooth, car, wired, usb, airPlay, other
 
     /// Classifies an `AVAudioSession.Port` raw value (input or output).
@@ -24,7 +27,7 @@ public enum RouteKind: String, Sendable, Equatable, CaseIterable {
 }
 
 /// One entry of the call screen's audio menu.
-public struct RouteOption: Sendable, Equatable, Identifiable {
+@_spi(PolTellApp) public struct RouteOption: Sendable, Equatable, Identifiable {
     /// "iphone", "speaker", or the input port's UID for an accessory.
     public let id: String
     public let kind: RouteKind
@@ -37,14 +40,14 @@ public struct RouteOption: Sendable, Equatable, Identifiable {
 }
 
 /// An input the session offers (`availableInputs`), as port type + UID + name.
-public struct RoutePort: Sendable, Equatable {
+@_spi(PolTellApp) public struct RoutePort: Sendable, Equatable {
     public let type: String, uid: String, name: String
     public init(type: String, uid: String, name: String) { self.type = type; self.uid = uid; self.name = name }
 }
 
 /// What to do with the session for a choice: which input to prefer (nil: none / leave it to the system) and
 /// whether to override the output to the loudspeaker.
-public struct RoutePlan: Sendable, Equatable {
+@_spi(PolTellApp) public struct RoutePlan: Sendable, Equatable {
     public let preferredInputUID: String?
     public let speakerOverride: Bool
     public init(preferredInputUID: String?, speakerOverride: Bool) {
@@ -52,7 +55,7 @@ public struct RoutePlan: Sendable, Equatable {
     }
 }
 
-public enum AudioRoutes {
+@_spi(PolTellApp) public enum AudioRoutes {
     /// The options for the menu: iPhone and Speaker always, then each accessory input (Bluetooth hands-free,
     /// car, wired headset, USB) once, in the session's order.
     public static func options(inputs: [RoutePort], hasReceiver: Bool = true) -> [RouteOption] {
@@ -118,7 +121,7 @@ public enum AudioRoutes {
 
 /// The I/O formats the engine was built with; a route change that alters them needs a new graph and converters
 /// (a hands-free microphone runs at 16 or 8 kHz, the built-in one at 48 kHz).
-public struct EngineFormat: Sendable, Equatable {
+@_spi(PolTellApp) public struct EngineFormat: Sendable, Equatable {
     public let inputRate: Double, inputChannels: Int, outputRate: Double, outputChannels: Int
     public init(inputRate: Double, inputChannels: Int, outputRate: Double, outputChannels: Int) {
         self.inputRate = inputRate; self.inputChannels = inputChannels
@@ -126,7 +129,7 @@ public struct EngineFormat: Sendable, Equatable {
     }
 }
 
-public enum EngineRebuild: Sendable, Equatable {
+@_spi(PolTellApp) public enum EngineRebuild: Sendable, Equatable {
     /// Leave the engine alone.
     case keep
     /// Tear down and build a fresh engine (new graph, new converters), keeping the call's state.
@@ -138,7 +141,7 @@ public enum EngineRebuild: Sendable, Equatable {
     case retryLater
 }
 
-public enum EngineDecision {
+@_spi(PolTellApp) public enum EngineDecision {
     /// After `AVAudioEngineConfigurationChange` or a route change while a call's session is active.
     /// - running: the engine is running; built: the formats it was built with; now: the session's formats now.
     /// - engineRunning: the audio engine itself still runs. Starting a voice-processing engine posts a configuration
